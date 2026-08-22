@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Globe Trotter — Travel Beyond</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ["Georgia", "serif"],
+            sans: ["Arial", "Helvetica", "sans-serif"]
+          },
+          animation: {
+            float: "float 5s ease-in-out infinite",
+            floatSlow: "floatSlow 7s ease-in-out infinite",
+            drift: "drift 8s ease-in-out infinite"
+          },
+          keyframes: {
+            float: {
+              "0%, 100%": { transform: "translateY(0) rotate(-2deg)" },
+              "50%": { transform: "translateY(-14px) rotate(1deg)" }
+            },
+            floatSlow: {
+              "0%, 100%": { transform: "translateY(0) rotate(2deg)" },
+              "50%": { transform: "translateY(-18px) rotate(-1deg)" }
+            },
+            drift: {
+              "0%, 100%": { transform: "translateX(0)" },
+              "50%": { transform: "translateX(18px)" }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      background: #65d2d5;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .hero {
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(255,255,255,.10) 0 2px, transparent 3px),
+        radial-gradient(circle at 80% 72%, rgba(255,255,255,.12) 0 2px, transparent 3px),
+        #65d2d5;
+      background-size: 90px 90px, 120px 120px, auto;
+    }
+
+    .paper {
+      background: #f8f6ed;
+      border: 8px solid rgba(255,255,255,.92);
+      box-shadow: 0 16px 30px rgba(20, 88, 94, .22);
+    }
+
+    .paper-inner {
+      position: relative;
+      overflow: hidden;
+      height: 100%;
+      background: #dce7df;
+    }
+
+    .photo-one {
+      background:
+        linear-gradient(135deg, rgba(14,74,82,.1), transparent 50%),
+        linear-gradient(145deg, #f4b48e 0 22%, #b5d6c8 22% 58%, #536d71 58%);
+    }
+
+    .photo-two {
+      background:
+        linear-gradient(180deg, #cce6ef 0 42%, #d6c38b 42% 64%, #789c83 64%);
+    }
+
+    .photo-three {
+      background:
+        linear-gradient(155deg, #203d49 0 24%, #e7bd76 24% 49%, #5c8c88 49% 100%);
+    }
+
+    .photo-four {
+      background:
+        linear-gradient(160deg, #8bb8bf 0 38%, #e6dfc5 38% 57%, #c88461 57%);
+    }
+
+    .route {
+      position: absolute;
+      width: 310px;
+      height: 150px;
+      border-top: 3px dashed rgba(255,255,255,.92);
+      border-radius: 50%;
+      transform: rotate(-18deg);
+      opacity: .85;
+    }
+
+    .route-two {
+      width: 370px;
+      height: 190px;
+      transform: rotate(19deg);
+    }
+
+    .pin {
+      position: relative;
+      width: 82px;
+      height: 82px;
+      background: #16a9b1;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      box-shadow: 0 12px 20px rgba(16,104,111,.25);
+    }
+
+    .pin::after {
+      content: "";
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      background: #65d2d5;
+      border-radius: 50%;
+      left: 27px;
+      top: 27px;
+    }
+
+    .stamp {
+      border: 4px dotted #fff;
+      background: rgba(255,255,255,.15);
+      box-shadow: 0 8px 20px rgba(20, 88, 94, .12);
+    }
+
+    .torn {
+      clip-path: polygon(
+        0 4%, 7% 1%, 14% 4%, 22% 1%, 30% 4%, 38% 1%,
+        46% 4%, 54% 1%, 62% 4%, 70% 1%, 78% 4%, 86% 1%,
+        94% 4%, 100% 1%, 98% 96%, 90% 99%, 82% 96%, 74% 99%,
+        66% 96%, 58% 99%, 50% 96%, 42% 99%, 34% 96%, 26% 99%,
+        18% 96%, 10% 99%, 2% 96%
+      );
+    }
+
+    .giraffe {
+      position: absolute;
+      left: -55px;
+      bottom: -70px;
+      width: 245px;
+      height: 390px;
+      transform: rotate(-9deg);
+      z-index: 5;
+    }
+
+    .giraffe-neck {
+      position: absolute;
+      width: 74px;
+      height: 320px;
+      left: 78px;
+      bottom: 0;
+      border-radius: 48% 48% 18% 18%;
+      background:
+        radial-gradient(circle at 25% 18%, #6e4426 0 9px, transparent 10px),
+        radial-gradient(circle at 70% 35%, #6e4426 0 11px, transparent 12px),
+        radial-gradient(circle at 35% 56%, #6e4426 0 10px, transparent 11px),
+        radial-gradient(circle at 75% 72%, #6e4426 0 8px, transparent 9px),
+        #d39a50;
+      border: 3px solid #9b6935;
+    }
+
+    .giraffe-head {
+      position: absolute;
+      width: 125px;
+      height: 92px;
+      left: 35px;
+      top: 18px;
+      border-radius: 55% 45% 48% 52%;
+      background:
+        radial-gradient(circle at 74% 35%, #29251d 0 5px, transparent 6px),
+        radial-gradient(circle at 28% 70%, #704727 0 10px, transparent 11px),
+        #d6a157;
+      border: 3px solid #9b6935;
+      transform: rotate(-8deg);
+    }
+
+    .giraffe-ear {
+      position: absolute;
+      width: 35px;
+      height: 16px;
+      background: #c58b45;
+      border-radius: 80% 20%;
+      top: 8px;
+    }
+
+    .ear-left { left: 5px; transform: rotate(-25deg); }
+    .ear-right { right: 2px; transform: rotate(25deg); }
+
+    .giraffe-horn {
+      position: absolute;
+      width: 9px;
+      height: 25px;
+      background: #6b4326;
+      border-radius: 10px;
+      top: -17px;
+    }
+
+    .horn-left { left: 28px; }
+    .horn-right { left: 70px; }
+
+    .hero-title {
+      letter-spacing: -0.065em;
+      text-shadow: 0 3px 0 rgba(16, 2, 2, 0.15);
+    }
+
+    .register-btn {
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+
+    .register-btn:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 12px 25px rgba(15, 15, 15, 0.28);
+      background: #0d0d0d;
+    }
+
+    @media (max-width: 768px) {
+      .hero {
+        min-height: 900px;
+      }
+
+      .hero-title {
+        font-size: 4.4rem;
+      }
+
+      .giraffe {
+        left: -95px;
+        transform: scale(.72) rotate(-9deg);
+        transform-origin: bottom left;
+      }
+
+      .pin {
+        width: 60px;
+        height: 60px;
+      }
+
+      .pin::after {
+        width: 21px;
+        height: 21px;
+        left: 20px;
+        top: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="hero min-h-screen">
+
+    <!-- Decorative travel route -->
+    <div class="route left-[4%] top-[13%]"></div>
+    <div class="route route-two right-[-8%] top-[47%]"></div>
+
+    <!-- Top destination labels -->
+    <div class="absolute left-[9%] top-[4%] z-10 text-white">
+      <span class="font-display text-3xl italic">Taiwan</span>
+      <div class="mt-1 h-1 w-12 rounded-full bg-white/70"></div>
+    </div>
+
+    <div class="absolute right-[18%] top-[8%] z-10 text-white">
+      <span class="font-display text-3xl italic">Lausanne</span>
+    </div>
+
+    
+
+    <!-- Small postcard top-left -->
+    <div class="paper absolute left-[-28px] top-[13%] z-10 h-44 w-36 -rotate-[13deg] p-2 md:left-[-18px] md:h-52 md:w-44">
+      <div class="paper-inner photo-one">
+        <div class="absolute inset-x-3 bottom-3 bg-white/85 px-2 py-1 text-center text-xs font-bold text-slate-700">
+          EXPLORE
+        </div>
+      </div>
+    </div>
+
+    <!-- Stamp -->
+    <div class="stamp absolute left-[24%] top-[8%] z-20 flex h-20 w-20 rotate-[7deg] items-center justify-center rounded-full text-center text-[9px] font-bold uppercase tracking-widest text-white">
+      <span>Travel<br>Beyond<br>Limits</span>
+    </div>
+
+    <!-- Top middle postcard -->
+    <div class="paper absolute left-[43%] top-[-34px] z-10 h-28 w-64 rotate-[-9deg] p-1 md:h-36 md:w-80">
+      <div class="paper-inner photo-three">
+        <div class="absolute bottom-1 left-2 text-xs font-bold text-white">NEW ADVENTURES</div>
+      </div>
+    </div>
+
+    <!-- Right postcard -->
+    <div class="paper absolute right-[-35px] top-[12%] z-10 h-48 w-40 rotate-[15deg] p-2 md:h-60 md:w-52">
+      <div class="paper-inner photo-four">
+        <div class="absolute bottom-3 left-3 right-3 bg-white/85 px-2 py-2 text-center text-xs font-bold text-slate-700">
+          DISCOVER
+        </div>
+      </div>
+    </div>
+
+    <!-- Main branding -->
+    <section class="relative z-30 flex min-h-screen items-center justify-center px-5 pt-8">
+      <div class="relative w-full max-w-4xl text-center">
+
+        <div class="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[.35em] text-white backdrop-blur-sm">
+          <span class="h-2 w-2 rounded-full bg-white"></span>
+          Travel
+          <span class="h-2 w-2 rounded-full bg-white"></span>
+        </div>
+
+        <h1 class="hero-title font-sans text-[4.8rem] font-black leading-[.83] text-white sm:text-[6.8rem] md:text-[8.2rem]">
+          globe<br>
+          <span class="relative inline-block">
+            trotter.
+            <span class="absolute -bottom-4 left-1/2 h-[3px] w-28 -translate-x-1/2 rotate-[-2deg] bg-white"></span>
+          </span>
+        </h1>
+
+        <p class="mx-auto mt-8 max-w-xl text-lg font-medium tracking-wide text-white/90 md:text-xl">
+          A simply superb journey starts with a single destination.
+        </p>
+
+        <button
+          id="registerBtn"
+          type="button"
+          class="register-btn mt-8 rounded-full border-2 border-white bg-white/10 px-10 py-4 text-sm font-extrabold uppercase tracking-[.25em] text-white backdrop-blur-sm"
+        >
+          Register
+        </button>
+
+        <p id="registerMessage" class="mt-4 hidden text-sm font-semibold text-white">
+          Welcome, Globe Trotter! Registration is coming soon.
+        </p>
+      </div>
+    </section>
+
+    <!-- Map pin -->
+    <div class="absolute right-[12%] top-[34%] z-20 animate-float">
+      <div class="pin"></div>
+    </div>
+
+    <!-- Paris map card -->
+    <div class="paper absolute bottom-[-45px] right-[-65px] z-10 h-64 w-96 rotate-[-7deg] p-2 md:right-[4%] md:h-72 md:w-[470px]">
+      <div class="paper-inner bg-[#e8e2cf]">
+        <div class="absolute inset-0 opacity-50"
+          style="background-image:
+            linear-gradient(28deg, transparent 48%, #9cb6bd 49%, transparent 50%),
+            linear-gradient(118deg, transparent 48%, #b7a98a 49%, transparent 50%),
+            linear-gradient(72deg, transparent 48%, #a6bdba 49%, transparent 50%);
+            background-size: 110px 90px, 140px 120px, 90px 110px;">
+        </div>
+        <div class="absolute left-[22%] top-[30%] h-32 w-1 rotate-[30deg] bg-white/80"></div>
+        <div class="absolute left-[42%] top-[8%] h-48 w-1 rotate-[72deg] bg-white/80"></div>
+        <div class="absolute bottom-8 left-10 font-display text-4xl italic text-[#57afb2]">Paris</div>
+        <div class="absolute bottom-4 right-7 text-[9px] font-bold tracking-[.3em] text-slate-500">CITY MAP</div>
+      </div>
+    </div>
+
+    <!-- Snow adventure postcard -->
+    <div class="paper absolute bottom-[-65px] left-[18%] z-20 h-48 w-72 rotate-[7deg] p-2 md:h-60 md:w-96">
+      <div class="paper-inner photo-two">
+        <div class="absolute inset-0 flex items-center justify-center">
+          <span class="font-display text-3xl italic text-white drop-shadow-lg md:text-4xl">Snow Adventure</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decorative airplane -->
+    <div class="absolute left-[34%] top-[22%] z-20 animate-drift text-3xl text-white">
+      ✈
+    </div>
+
+    <!-- Giraffe-inspired decorative illustration -->
+    <div class="giraffe hidden md:block">
+      <div class="giraffe-neck"></div>
+      <div class="giraffe-head">
+        <div class="giraffe-ear ear-left"></div>
+        <div class="giraffe-ear ear-right"></div>
+        <div class="giraffe-horn horn-left"></div>
+        <div class="giraffe-horn horn-right"></div>
+      </div>
+    </div>
+
+    <!-- Small destination marker -->
+    <div class="absolute bottom-[20%] left-[11%] z-30 hidden items-center gap-3 text-white md:flex">
+      <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[#16a9b1] text-lg">✦</span>
+      <div>
+        <p class="font-display text-2xl italic">Journey</p>
+        <p class="text-[9px] font-bold uppercase tracking-[.25em]">Starts here</p>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const registerBtn = document.getElementById("registerBtn");
+    const registerMessage = document.getElementById("registerMessage");
+
+    registerBtn.addEventListener("click", () => {
+      window.location.href = "login-register.html#register";
+    });
+  </script>
+</body>
+</html>
