@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Globe Trotter — Explore Destinations</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- {% load static %} -->
+<!-- <link rel="stylesheet" href="{% static 'css/style.css' %}"> -->
+
+<div class="gt-page">
+
+  <div class="gt-hero-band">
+    <!-- ===================== Header w/ Profile Dropdown (Feature #12) ===================== -->
+    <header class="gt-header">
+      <div class="gt-logo">
+        <span>🌍</span>
+        <span class="gt-script">Globe Trotter</span>
+      </div>
+
+      <nav class="gt-nav-links">
+        <a href="dashboard.html" class="active">Explore</a>
+        <a href="mytrip-planner.html">My Trips</a>
+        <a href="budget-planner.html">Budget</a>
+        <a href="#">Community</a>
+      </nav>
+
+      <div class="gt-profile" id="gtProfile">
+        <button class="gt-profile-trigger" id="gtProfileTrigger" aria-haspopup="true" aria-expanded="false">
+          <!-- <img class="gt-profile-avatar" src="{{ user.profile.avatar_url }}" alt=""> -->
+          <img class="gt-profile-avatar" src="https://i.pravatar.cc/72?img=47" alt="">
+          <!-- {{ user.first_name|default:"Ona" }} -->
+          <span>Ona</span>
+          <span class="gt-profile-caret"></span>
+        </button>
+
+        <div class="gt-profile-menu" role="menu">
+          <a href="{% url 'account' %}" role="menuitem">
+            <span class="gt-menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>
+            </span>
+            Account
+          </a>
+          <a href="{% url 'profile' %}" role="menuitem">
+            <span class="gt-menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            Profile
+          </a>
+          <a href="{% url 'edit_profile' %}" role="menuitem">
+            <span class="gt-menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            </span>
+            Edit Profile
+          </a>
+          <a href="{% url 'my_bookings' %}" role="menuitem">
+            <span class="gt-menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            </span>
+            My Bookings
+          </a>
+          <hr>
+          <a href="{% url 'logout' %}" role="menuitem">
+            <span class="gt-menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+            </span>
+            Log Out
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <div class="gt-hero-copy">
+      <span class="gt-script gt-eyebrow">Find Your</span>
+      <h1>Destination — dream it, plan it, live it.</h1>
+    </div>
+
+    <form class="gt-search-bar" action="{% url 'city_search' %}" method="get">
+      <input type="search" name="q" placeholder="Search a city, country or activity...">
+      <button type="submit">Search</button>
+    </form>
+  </div>
+
+  <!-- ===================== Sorting tabs ===================== -->
+  <div class="gt-sort-tabs" role="tablist" aria-label="Sort destinations">
+    <button class="gt-sort-tab is-active" data-sort="date">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Date
+    </button>
+    <button class="gt-sort-tab" data-sort="price_low">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V4M5 13l7 7 7-7"/></svg>
+      Price Low to High
+    </button>
+    <button class="gt-sort-tab" data-sort="price_high">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v16M5 11l7-7 7 7"/></svg>
+      Price High to Low
+    </button>
+    <button class="gt-sort-tab" data-sort="name">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h6"/></svg>
+      Name (A-Z)
+    </button>
+  </div>
+
+  <!-- ===================== Explore layout: cards + filter rail ===================== -->
+  <div class="gt-explore-layout">
+
+    <!-- Destination / activity cards (Features #7, #8) -->
+    <!-- {% for destination in destinations %} -->
+    <div class="gt-card-grid">
+
+      <a href="paris -trip-iternary.html" class="gt-card" style="text-decoration:none; color:inherit;">
+        <div class="gt-card-media">
+          <img src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&h=450&fit=crop" alt="Paris, France">
+          <span class="gt-badge">Special Offer</span>
+          <span class="gt-price-tag">$1,240</span>
+        </div>
+        <div class="gt-card-body">
+          <h3>Paris, France</h3>
+          <p>Wander the Seine, climb the Eiffel Tower and lose an afternoon in the Louvre.</p>
+          <div class="gt-card-meta">
+            <span class="gt-pill">7 Days</span>
+            <span class="gt-pill gt-pill-rating">★ 4.8 Superb</span>
+          </div>
+        </div>
+      </a>
+
+      <article class="gt-card">
+        <div class="gt-card-media">
+          <img src="https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=600&h=450&fit=crop" alt="Skiing in the Alps">
+          <span class="gt-badge gt-badge-teal">Popular</span>
+          <span class="gt-price-tag">$1,590</span>
+        </div>
+        <div class="gt-card-body">
+          <h3>Skiing in the Alps</h3>
+          <p>Fresh powder, alpine chalets and slopes for every skill level in Chamonix.</p>
+          <div class="gt-card-meta">
+            <span class="gt-pill">5 Days</span>
+            <span class="gt-pill gt-pill-rating">★ 4.6 Good</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="gt-card">
+        <div class="gt-card-media">
+          <img src="https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=600&h=450&fit=crop" alt="Sydney Opera House">
+          <span class="gt-price-tag">$2,180</span>
+        </div>
+        <div class="gt-card-body">
+          <h3>Sydney, Australia</h3>
+          <p>Harbour views, coastal walks and a front-row seat to the Opera House.</p>
+          <div class="gt-card-meta">
+            <span class="gt-pill">9 Days</span>
+            <span class="gt-pill gt-pill-rating">★ 4.7 Superb</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="gt-card">
+        <div class="gt-card-media">
+          <img src="https://images.unsplash.com/photo-1533929736458-ca588d08c8be?w=600&h=450&fit=crop" alt="Florence, Italy">
+          <span class="gt-badge">Special Offer</span>
+          <span class="gt-price-tag">$1,590</span>
+        </div>
+        <div class="gt-card-body">
+          <h3>Italy Bus 8 Days</h3>
+          <p>Rome, Florence and Venice on one easy coach route through Italy's classics.</p>
+          <div class="gt-card-meta">
+            <span class="gt-pill">8 Days</span>
+            <span class="gt-pill gt-pill-rating">★ 4.5 Good</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="gt-card">
+        <div class="gt-card-media">
+          <img src="https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?w=600&h=450&fit=crop" alt="Amsterdam canals, Holland">
+          <span class="gt-badge gt-badge-teal">Popular</span>
+          <span class="gt-price-tag">$1,690</span>
+        </div>
+        <div class="gt-card-body">
+          <h3>Holland Canals</h3>
+          <p>Cycle past windmills and glide the canals of Amsterdam by candlelit boat.</p>
+          <div class="gt-card-meta">
+            <span class="gt-pill">4 Days</span>
+            <span class="gt-pill gt-pill-rating">★ 4.4 Good</span>
+          </div>
+        </div>
+      </article>
+
+    </div>
+    <!-- {% endfor %} -->
+
+    <!-- ===================== Right rail: Plan Your Trip filters ===================== -->
+    <aside class="gt-filter-panel">
+      <span class="gt-script">Plan Your Trip</span>
+      <h3>Filter &amp; Search</h3>
+      <p class="gt-sub">It's time to plan the perfect vacation — narrow things down below.</p>
+
+      <form method="get" action="{% url 'city_search' %}">
+        <div class="gt-filter-field">
+          <label for="fSearch">Search Tour</label>
+          <input type="text" id="fSearch" name="q" placeholder="City or activity">
+        </div>
+
+        <div class="gt-filter-field">
+          <label for="fWhen">When To Go</label>
+          <input type="date" id="fWhen" name="start_date">
+        </div>
+
+        <div class="gt-filter-field">
+          <label for="fMonth">Month</label>
+          <select id="fMonth" name="month">
+            <option value="">Any month</option>
+            <option>January</option><option>February</option><option>March</option>
+            <option>April</option><option>May</option><option>June</option>
+            <option>July</option><option>August</option><option>September</option>
+            <option>October</option><option>November</option><option>December</option>
+          </select>
+        </div>
+
+        <div class="gt-filter-group">
+          <h4>Filter By Price</h4>
+          <div class="gt-price-range">
+            <input type="range" min="50" max="5000" value="1800" name="max_price" id="fPrice">
+            <div class="gt-price-range-val"><span>$50</span><span id="fPriceVal">$1,800</span><span>$5,000</span></div>
+          </div>
+        </div>
+
+        <div class="gt-filter-group">
+          <h4>Category</h4>
+          <div class="gt-checklist">
+            <label><input type="checkbox" name="category" value="popular"> Popular</label>
+            <label><input type="checkbox" name="category" value="new"> New Tour</label>
+            <label><input type="checkbox" name="category" value="latest"> Latest</label>
+            <label><input type="checkbox" name="category" value="skiing"> Skiing</label>
+            <label><input type="checkbox" name="category" value="europe"> Europe</label>
+            <label><input type="checkbox" name="category" value="wine"> Wine &amp; Food</label>
+            <label><input type="checkbox" name="category" value="family"> Family</label>
+          </div>
+        </div>
+
+        <button type="submit" class="gt-btn gt-btn-cta" style="width:100%; margin-top:20px;">Apply Filters</button>
+      </form>
+    </aside>
+
+  </div>
+</div>
+
+<script>
+  // Profile dropdown toggle
+  (function () {
+    var profile = document.getElementById('gtProfile');
+    var trigger = document.getElementById('gtProfileTrigger');
+
+    trigger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var isOpen = profile.classList.toggle('open');
+      trigger.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!profile.contains(e.target)) {
+        profile.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+  })();
+
+  // Sorting tabs (visual state only — wire to real query params server-side)
+  (function () {
+    var tabs = document.querySelectorAll('.gt-sort-tab');
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        tabs.forEach(function (t) { t.classList.remove('is-active'); });
+        tab.classList.add('is-active');
+        // {% comment %} e.g. window.location.search = '?sort=' + tab.dataset.sort {% endcomment %}
+      });
+    });
+  })();
+
+  // Price range live label
+  (function () {
+    var range = document.getElementById('fPrice');
+    var out = document.getElementById('fPriceVal');
+    if (range && out) {
+      range.addEventListener('input', function () {
+        out.textContent = '$' + Number(range.value).toLocaleString();
+      });
+    }
+  })();
+</script>
+
+</body>
+</html>

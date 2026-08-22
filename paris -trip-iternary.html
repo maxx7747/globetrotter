@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paris Trip Itinerary — Globe Trotter</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ["Georgia", "serif"],
+            sans: ["Arial", "Helvetica", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: #f8f6ed;
+      font-family: Arial, Helvetica, sans-serif;
+      background-image:
+        radial-gradient(circle at 14% 8%, rgba(22,169,177,.06) 0 2px, transparent 3px),
+        radial-gradient(circle at 86% 64%, rgba(22,169,177,.06) 0 2px, transparent 3px);
+      background-size: 110px 110px, 140px 140px;
+    }
+
+    /* ---- shared photo textures (same recipe as the trips + dashboard postcards) ---- */
+    .photo-one {
+      background:
+        linear-gradient(135deg, rgba(14,74,82,.1), transparent 50%),
+        linear-gradient(145deg, #f4b48e 0 22%, #b5d6c8 22% 58%, #536d71 58%);
+    }
+    .photo-two { background: linear-gradient(180deg, #cce6ef 0 42%, #d6c38b 42% 64%, #789c83 64%); }
+    .photo-three { background: linear-gradient(155deg, #203d49 0 24%, #e7bd76 24% 49%, #5c8c88 49% 100%); }
+    .photo-four { background: linear-gradient(160deg, #8bb8bf 0 38%, #e6dfc5 38% 57%, #c88461 57%); }
+
+    /* ---- trip header ticket ---- */
+    .trip-hero {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 16px 32px rgba(20,88,94,.18);
+    }
+    .trip-hero-photo { position: relative; height: 210px; }
+    .trip-hero-photo::after {
+      content: "";
+      position: absolute; inset: 0;
+      background: linear-gradient(0deg, rgba(15,58,61,.82) 0%, rgba(15,58,61,.15) 55%, transparent 75%);
+    }
+    .trip-hero-content {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      padding: 22px 28px;
+      z-index: 2;
+      color: #fff;
+    }
+    .trip-hero-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: .25em; text-transform: uppercase; opacity: .85; }
+    .trip-hero-title { font-family: Georgia, serif; font-style: italic; font-size: 2.1rem; margin: 2px 0 4px; }
+    .trip-hero-dates { font-size: .85rem; font-weight: 700; letter-spacing: .04em; opacity: .9; }
+    .trip-hero-body { background: #fff; padding: 20px 28px 24px; }
+    .trip-hero-desc { font-size: .88rem; line-height: 1.6; color: #5b6b6a; max-width: 640px; }
+    .trip-edit-btn {
+      position: absolute; top: 18px; right: 18px; z-index: 3;
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.5);
+      backdrop-filter: blur(6px);
+      color: #fff; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+      padding: 8px 14px; border-radius: 999px; cursor: pointer;
+    }
+    .trip-edit-btn:hover { background: rgba(255,255,255,.3); }
+
+    /* ---- stop tabs (multi-city) ---- */
+    .stop-tabs { display: flex; gap: 10px; overflow-x: auto; padding: 4px 0 6px; }
+    .stop-tab {
+      flex: 0 0 auto;
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: 2px solid rgba(22,169,177,.25);
+      background: #fff;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .2s ease;
+    }
+    .stop-tab.active { background: #16a9b1; border-color: #16a9b1; }
+    .stop-tab.active .stop-tab-city,
+    .stop-tab.active .stop-tab-dates { color: #fff; }
+    .stop-tab-city { font-family: Georgia, serif; font-style: italic; font-size: 1rem; color: #0f3a3d; }
+    .stop-tab-dates { font-size: 10px; font-weight: 700; letter-spacing: .06em; color: #5c8c88; text-transform: uppercase; }
+    .stop-tab-remove {
+      border: none; background: transparent; color: inherit; opacity: .6;
+      font-size: 14px; line-height: 1; cursor: pointer; padding: 0 2px;
+    }
+    .stop-tab-remove:hover { opacity: 1; }
+    .add-stop-btn {
+      flex: 0 0 auto;
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: 2px dashed rgba(22,169,177,.4);
+      background: transparent;
+      color: #16a9b1;
+      font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .add-stop-btn:hover { background: rgba(22,169,177,.08); }
+
+    /* ---- add-stop inline form ---- */
+    .stop-form {
+      display: none;
+      grid-template-columns: 1.2fr 1fr .8fr .8fr auto;
+      gap: 8px;
+      background: #fff;
+      border: 2px dashed rgba(22,169,177,.35);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+    .stop-form.open { display: grid; }
+    .stop-form input {
+      border: 2px solid rgba(22,169,177,.25); border-radius: 8px; padding: 9px 10px;
+      font-size: .85rem; background: #f8f6ed; color: #0f3a3d; outline: none;
+    }
+    .stop-form input:focus { border-color: #16a9b1; }
+    .stop-form button {
+      background: #0f3a3d; color: #fff; border: none; border-radius: 8px; padding: 9px 16px;
+      font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; cursor: pointer;
+    }
+    .stop-form button:hover { background: #16a9b1; }
+    @media (max-width: 640px) { .stop-form { grid-template-columns: 1fr 1fr; } .stop-form button { grid-column: 1 / -1; } }
+
+    /* ---- view toggle ---- */
+    .view-toggle { display: inline-flex; border: 2px solid rgba(22,169,177,.3); border-radius: 999px; overflow: hidden; }
+    .view-toggle button {
+      border: none; background: #fff; color: #0f3a3d;
+      font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+      padding: 9px 18px; cursor: pointer; transition: all .2s ease;
+    }
+    .view-toggle button.active { background: #16a9b1; color: #fff; }
+
+    /* ---- day blocks (list view) ---- */
+    .day-block {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(20,88,94,.1);
+      padding: 20px 22px 22px;
+      margin-bottom: 18px;
+    }
+    .day-block-head {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+      margin-bottom: 14px; padding-bottom: 12px; border-bottom: 2px dashed rgba(22,169,177,.3);
+    }
+    .day-block-title { font-family: Georgia, serif; font-style: italic; font-size: 1.25rem; color: #0f3a3d; }
+    .day-block-date { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #5c8c88; }
+
+    .activity-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; margin-bottom: 8px;
+      background: #f8f6ed; border-radius: 8px;
+    }
+    .activity-row:last-of-type { margin-bottom: 0; }
+    .activity-time { flex: 0 0 auto; width: 76px; font-size: .75rem; font-weight: 800; color: #16a9b1; }
+    .activity-dot { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; }
+    .activity-main { flex: 1; min-width: 0; }
+    .activity-title { font-size: .88rem; font-weight: 700; color: #0f3a3d; }
+    .activity-sub { font-size: .74rem; color: #5b6b6a; margin-top: 1px; }
+    .activity-cost { flex: 0 0 auto; font-size: .85rem; font-weight: 700; color: #0f3a3d; }
+    .activity-delete { flex: 0 0 auto; border: none; background: transparent; color: #b5544d; font-size: 1.05rem; cursor: pointer; padding: 2px 4px; }
+    .activity-delete:hover { color: #8a2e29; }
+    .activity-empty { text-align: center; padding: 16px; font-size: .82rem; color: #8a9a98; font-style: italic; font-family: Georgia, serif; }
+
+    /* ---- add activity form ---- */
+    .activity-form { display: grid; grid-template-columns: 90px 130px 1fr 90px 90px auto; gap: 8px; margin-top: 14px; }
+    .activity-form select, .activity-form input {
+      border: 2px solid rgba(22,169,177,.25); border-radius: 8px; padding: 8px 9px;
+      font-size: .78rem; background: #f8f6ed; color: #0f3a3d; outline: none; width: 100%;
+    }
+    .activity-form select:focus, .activity-form input:focus { border-color: #16a9b1; }
+    .activity-form button {
+      background: #16a9b1; color: #fff; border: none; border-radius: 8px; padding: 8px 14px;
+      font-size: .68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
+    }
+    .activity-form button:hover { background: #0f3a3d; }
+    @media (max-width: 768px) { .activity-form { grid-template-columns: 1fr 1fr; } .activity-form button { grid-column: 1 / -1; } }
+
+    .add-day-btn {
+      width: 100%;
+      border: 2px dashed rgba(22,169,177,.35);
+      background: transparent; color: #16a9b1;
+      border-radius: 10px; padding: 12px;
+      font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+      cursor: pointer;
+    }
+    .add-day-btn:hover { background: rgba(22,169,177,.08); }
+
+    /* ---- calendar view ---- */
+    .cal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .cal-day {
+      background: #fff; border-radius: 10px; padding: 14px;
+      box-shadow: 0 6px 16px rgba(20,88,94,.1);
+      border-top: 4px solid #16a9b1;
+    }
+    .cal-day-date { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #5c8c88; }
+    .cal-day-label { font-family: Georgia, serif; font-style: italic; font-size: 1.05rem; color: #0f3a3d; margin: 2px 0 10px; }
+    .cal-activity { display: flex; align-items: center; gap: 6px; font-size: .72rem; color: #0f3a3d; margin-bottom: 6px; }
+    .cal-activity .dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; }
+    .cal-activity span.txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cal-empty { font-size: .72rem; color: #8a9a98; font-style: italic; }
+
+    /* ---- summary ticket (footer) ---- */
+    .summary-ticket {
+      background: #fff; border-radius: 10px; overflow: hidden;
+      box-shadow: 0 16px 32px rgba(20,88,94,.16);
+    }
+    .summary-head {
+      background: #0f3a3d; color: #fff; padding: 12px 24px;
+      font-size: 11px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase;
+    }
+    .summary-body { padding: 22px 24px 26px; display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: space-between; }
+    .summary-stats { display: flex; gap: 32px; flex-wrap: wrap; }
+    .summary-stat-label { display: block; font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #5c8c88; }
+    .summary-stat-value { display: block; margin-top: 2px; font-family: Georgia, serif; font-style: italic; font-size: 1.5rem; color: #0f3a3d; }
+    .summary-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .summary-btn-primary {
+      background: #16a9b1; color: #fff; border: none; border-radius: 8px; padding: 12px 22px;
+      font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; text-decoration: none;
+    }
+    .summary-btn-primary:hover { background: #0f3a3d; }
+    .summary-btn-ghost {
+      background: transparent; color: #0f3a3d; border: 2px solid rgba(22,169,177,.35); border-radius: 8px; padding: 10px 20px;
+      font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .summary-btn-ghost:hover { border-color: #16a9b1; color: #16a9b1; }
+  </style>
+</head>
+
+<body>
+
+  <!-- top bar -->
+  <div class="mx-auto flex max-w-5xl items-center justify-between px-6 pt-8 pb-2 md:px-10">
+    <a href="dashboard.html" class="font-sans text-sm font-black uppercase tracking-[.2em] text-[#0f3a3d]">
+      globe<span class="text-[#16a9b1]">trotter.</span>
+    </a>
+    <div class="flex items-center gap-5">
+      <a href="mytrip-planner.html" class="text-xs font-bold uppercase tracking-[.2em] text-[#16a9b1] transition hover:text-[#0f3a3d]">My Trips</a>
+      <a href="budget-planner.html" class="text-xs font-bold uppercase tracking-[.2em] text-[#16a9b1] transition hover:text-[#0f3a3d]">Budget</a>
+      <a href="dashboard.html" class="text-xs font-bold uppercase tracking-[.2em] text-[#16a9b1] transition hover:text-[#0f3a3d]">← Explore</a>
+    </div>
+  </div>
+
+  <!-- breadcrumb -->
+  <div class="mx-auto max-w-5xl px-6 md:px-10 pt-2">
+    <a href="mytrip-planner.html" class="text-[11px] font-bold uppercase tracking-[.15em] text-[#8a9a98] hover:text-[#16a9b1]">← Back to My Trips</a>
+  </div>
+
+  <!-- trip header -->
+  <section class="mx-auto max-w-5xl px-6 md:px-10 pt-4 pb-8">
+    <div class="trip-hero">
+      <div class="trip-hero-photo photo-one" id="heroPhoto">
+        <div class="trip-hero-content">
+          <p class="trip-hero-eyebrow" id="heroEyebrow">7 Day Trip</p>
+          <h1 class="trip-hero-title" id="heroTitle">Paris, France</h1>
+          <p class="trip-hero-dates" id="heroDates">4 – 10 Jun 2027</p>
+        </div>
+        <button class="trip-edit-btn" type="button" title="Edit trip details">✎ Edit Trip</button>
+      </div>
+      <div class="trip-hero-body">
+        <p class="trip-hero-desc" id="heroDesc">
+          Museums, pastries, riverside walks, and a day trip out to Versailles — the classic Paris week done properly.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- stops + add stop -->
+  <section class="mx-auto max-w-5xl px-6 md:px-10">
+    <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
+      <h2 class="font-display italic text-xl text-[#0f3a3d]">the stops.</h2>
+      <div class="view-toggle" id="viewToggle">
+        <button data-view="list" class="active">List</button>
+        <button data-view="calendar">Calendar</button>
+      </div>
+    </div>
+
+    <div class="stop-tabs" id="stopTabs"></div>
+
+    <form class="stop-form" id="stopForm">
+      <input type="text" id="stopCity" placeholder="City (e.g. Nara)" required />
+      <input type="text" id="stopCountry" placeholder="Country" />
+      <input type="date" id="stopStart" required />
+      <input type="date" id="stopEnd" required />
+      <button type="submit">Add Stop</button>
+    </form>
+  </section>
+
+  <!-- itinerary body -->
+  <section class="mx-auto max-w-5xl px-6 md:px-10 pb-10">
+    <div id="listView"></div>
+    <div id="calendarView" class="hidden cal-grid"></div>
+  </section>
+
+  <!-- trip summary -->
+  <section class="mx-auto max-w-5xl px-6 md:px-10 pb-28">
+    <div class="summary-ticket">
+      <div class="summary-head">✈ Trip Summary</div>
+      <div class="summary-body">
+        <div class="summary-stats">
+          <div>
+            <span class="summary-stat-label">Stops</span>
+            <span class="summary-stat-value" id="statStops">0</span>
+          </div>
+          <div>
+            <span class="summary-stat-label">Days Planned</span>
+            <span class="summary-stat-value" id="statDays">0</span>
+          </div>
+          <div>
+            <span class="summary-stat-label">Activities</span>
+            <span class="summary-stat-value" id="statActivities">0</span>
+          </div>
+          <div>
+            <span class="summary-stat-label">Est. Total Cost</span>
+            <span class="summary-stat-value" id="statCost">₹0</span>
+          </div>
+        </div>
+        <div class="summary-actions">
+          <a href="budget-planner.html" class="summary-btn-primary">Open Budget Boarding Pass</a>
+          <button class="summary-btn-ghost" type="button" id="shareBtn">⤴ Share Trip</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // ---- CATEGORIES (mirrors budget-planner.html so colors stay consistent) ----
+    const CATEGORIES = [
+      { id: "stay", label: "Stay", color: "#16a9b1" },
+      { id: "food", label: "Food & Drink", color: "#e0a85c" },
+      { id: "transport", label: "Transport", color: "#5c8c88" },
+      { id: "activities", label: "Sightseeing", color: "#789c83" },
+      { id: "shopping", label: "Shopping", color: "#c88461" },
+      { id: "misc", label: "Misc", color: "#8a9a98" }
+    ];
+    const catById = (id) => CATEGORIES.find((c) => c.id === id) || CATEGORIES[CATEGORIES.length - 1];
+
+    // ---- TRIP DATA (this is the single-trip planner — swap for the trip the user clicked into) ----
+    const trip = {
+      name: "Paris, France",
+      dates: "4 – 10 Jun 2027",
+      photo: "photo-one",
+      description: "Museums, pastries, riverside walks, and a day trip out to Versailles — the classic Paris week done properly.",
+      stops: [
+        {
+          city: "Paris", country: "France", start: "2027-06-04", end: "2027-06-08",
+          days: [
+            {
+              label: "Day 1", date: "Jun 4",
+              activities: [
+                { time: "10:00 AM", title: "Eiffel Tower summit visit", category: "activities", duration: "2 hrs", cost: 2800 },
+                { time: "1:00 PM", title: "Lunch at a Le Marais café", category: "food", duration: "1.5 hrs", cost: 1600 },
+                { time: "6:00 PM", title: "Hotel check-in, Le Marais", category: "stay", duration: "—", cost: 9500 }
+              ]
+            },
+            {
+              label: "Day 2", date: "Jun 5",
+              activities: [
+                { time: "9:00 AM", title: "Louvre Museum", category: "activities", duration: "3 hrs", cost: 1400 },
+                { time: "1:00 PM", title: "Seine river cruise", category: "activities", duration: "1 hr", cost: 1200 },
+                { time: "4:00 PM", title: "Pastry crawl in Saint-Germain", category: "food", duration: "2 hrs", cost: 1100 }
+              ]
+            },
+            {
+              label: "Day 3", date: "Jun 6",
+              activities: [
+                { time: "8:30 AM", title: "RER train to Versailles", category: "transport", duration: "45 min", cost: 700 },
+                { time: "10:00 AM", title: "Palace of Versailles & gardens", category: "activities", duration: "4 hrs", cost: 2400 }
+              ]
+            }
+          ]
+        },
+        {
+          city: "Montmartre", country: "France", start: "2027-06-09", end: "2027-06-09",
+          days: [
+            {
+              label: "Day 1", date: "Jun 9",
+              activities: [
+                { time: "10:00 AM", title: "Sacré-Cœur Basilica", category: "activities", duration: "1.5 hrs", cost: 0 },
+                { time: "12:30 PM", title: "Artists' Square wander", category: "activities", duration: "1 hr", cost: 0 },
+                { time: "2:30 PM", title: "Shopping on Rue des Abbesses", category: "shopping", duration: "2 hrs", cost: 3200 }
+              ]
+            }
+          ]
+        },
+        {
+          city: "Giverny", country: "France", start: "2027-06-10", end: "2027-06-10",
+          days: [
+            { label: "Day 1", date: "Jun 10", activities: [] }
+          ]
+        }
+      ]
+    };
+
+    let activeStopIndex = 0;
+    let activeView = "list";
+
+    const el = (id) => document.getElementById(id);
+    const inr = (n) => "₹" + Math.abs(n).toLocaleString("en-IN");
+
+    function renderHero() {
+      const totalDays = trip.stops.reduce((s, stop) => s + stop.days.length, 0);
+      el("heroEyebrow").textContent = `${trip.stops.length} Stop Trip · ${totalDays}+ Days Planned`;
+      el("heroTitle").textContent = trip.name;
+      el("heroDates").textContent = trip.dates;
+      el("heroDesc").textContent = trip.description;
+      el("heroPhoto").className = "trip-hero-photo " + trip.photo;
+    }
+
+    function renderStopTabs() {
+      const wrap = el("stopTabs");
+      wrap.innerHTML = trip.stops.map((stop, i) => `
+        <div class="stop-tab ${i === activeStopIndex ? "active" : ""}" data-idx="${i}">
+          <div>
+            <div class="stop-tab-city">${stop.city}</div>
+            <div class="stop-tab-dates">${fmtRange(stop.start, stop.end)}</div>
+          </div>
+          <button class="stop-tab-remove" data-remove="${i}" title="Remove stop">×</button>
+        </div>
+      `).join("") + `<button class="add-stop-btn" id="addStopToggle" type="button">+ Add Stop</button>`;
+
+      wrap.querySelectorAll(".stop-tab").forEach((tab) => {
+        tab.addEventListener("click", (e) => {
+          if (e.target.closest(".stop-tab-remove")) return;
+          activeStopIndex = Number(tab.dataset.idx);
+          renderAll();
+        });
+      });
+      wrap.querySelectorAll(".stop-tab-remove").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const idx = Number(btn.dataset.remove);
+          if (trip.stops.length <= 1) return;
+          trip.stops.splice(idx, 1);
+          if (activeStopIndex >= trip.stops.length) activeStopIndex = trip.stops.length - 1;
+          renderAll();
+        });
+      });
+      el("addStopToggle").addEventListener("click", () => {
+        el("stopForm").classList.toggle("open");
+      });
+    }
+
+    function fmtRange(start, end) {
+      const opts = { month: "short", day: "numeric" };
+      const s = new Date(start).toLocaleDateString("en-US", opts);
+      const e = new Date(end).toLocaleDateString("en-US", opts);
+      return s === e ? s : `${s} – ${e}`;
+    }
+
+    function renderList() {
+      const stop = trip.stops[activeStopIndex];
+      if (!stop) { el("listView").innerHTML = ""; return; }
+
+      el("listView").innerHTML = stop.days.map((day, dIdx) => `
+        <div class="day-block">
+          <div class="day-block-head">
+            <span class="day-block-title">${day.label} — ${stop.city}</span>
+            <span class="day-block-date">${day.date}</span>
+          </div>
+
+          ${day.activities.length === 0
+            ? `<div class="activity-empty">Nothing planned yet — add the first activity below.</div>`
+            : day.activities.map((a, aIdx) => `
+              <div class="activity-row">
+                <span class="activity-time">${a.time}</span>
+                <span class="activity-dot" style="background:${catById(a.category).color}"></span>
+                <div class="activity-main">
+                  <div class="activity-title">${a.title}</div>
+                  <div class="activity-sub">${catById(a.category).label} · ${a.duration}</div>
+                </div>
+                <span class="activity-cost">${a.cost > 0 ? inr(a.cost) : "Free"}</span>
+                <button class="activity-delete" data-day="${dIdx}" data-act="${aIdx}" title="Remove">×</button>
+              </div>
+            `).join("")
+          }
+
+          <form class="activity-form" data-day="${dIdx}">
+            <input type="time" required />
+            <select>
+              ${CATEGORIES.map((c) => `<option value="${c.id}">${c.label}</option>`).join("")}
+            </select>
+            <input type="text" placeholder="Activity name" required />
+            <input type="text" placeholder="Duration" />
+            <input type="number" placeholder="Cost ₹" min="0" />
+            <button type="submit">Add</button>
+          </form>
+        </div>
+      `).join("") + `<button class="add-day-btn" id="addDayBtn" type="button">+ Add Another Day to ${stop.city}</button>`;
+
+      el("listView").querySelectorAll(".activity-delete").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          stop.days[Number(btn.dataset.day)].activities.splice(Number(btn.dataset.act), 1);
+          renderAll();
+        });
+      });
+
+      el("listView").querySelectorAll(".activity-form").forEach((form) => {
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const inputs = form.querySelectorAll("input, select");
+          const [timeInput, catSelect, titleInput, durationInput, costInput] = inputs;
+          if (!titleInput.value.trim()) return;
+          stop.days[Number(form.dataset.day)].activities.push({
+            time: formatTime(timeInput.value),
+            category: catSelect.value,
+            title: titleInput.value.trim(),
+            duration: durationInput.value.trim() || "—",
+            cost: Number(costInput.value) || 0
+          });
+          renderAll();
+        });
+      });
+
+      const addDayBtn = el("addDayBtn");
+      if (addDayBtn) {
+        addDayBtn.addEventListener("click", () => {
+          const nextNum = stop.days.length + 1;
+          stop.days.push({ label: `Day ${nextNum}`, date: "TBD", activities: [] });
+          renderAll();
+        });
+      }
+    }
+
+    function formatTime(value) {
+      if (!value) return "All day";
+      const [h, m] = value.split(":").map(Number);
+      const period = h >= 12 ? "PM" : "AM";
+      const h12 = h % 12 === 0 ? 12 : h % 12;
+      return `${h12}:${String(m).padStart(2, "0")} ${period}`;
+    }
+
+    function renderCalendar() {
+      const stop = trip.stops[activeStopIndex];
+      if (!stop) { el("calendarView").innerHTML = ""; return; }
+
+      el("calendarView").innerHTML = stop.days.map((day) => `
+        <div class="cal-day">
+          <div class="cal-day-date">${day.date} · ${stop.city}</div>
+          <div class="cal-day-label">${day.label}</div>
+          ${day.activities.length === 0
+            ? `<div class="cal-empty">No plans yet</div>`
+            : day.activities.map((a) => `
+              <div class="cal-activity">
+                <span class="dot" style="background:${catById(a.category).color}"></span>
+                <span class="txt">${a.time} · ${a.title}</span>
+              </div>
+            `).join("")
+          }
+        </div>
+      `).join("");
+    }
+
+    function renderSummary() {
+      const totalStops = trip.stops.length;
+      let totalDays = 0, totalActivities = 0, totalCost = 0;
+      trip.stops.forEach((stop) => {
+        totalDays += stop.days.length;
+        stop.days.forEach((day) => {
+          totalActivities += day.activities.length;
+          day.activities.forEach((a) => (totalCost += a.cost));
+        });
+      });
+      el("statStops").textContent = totalStops;
+      el("statDays").textContent = totalDays;
+      el("statActivities").textContent = totalActivities;
+      el("statCost").textContent = inr(totalCost);
+    }
+
+    function renderAll() {
+      renderHero();
+      renderStopTabs();
+      renderSummary();
+      if (activeView === "list") {
+        el("listView").classList.remove("hidden");
+        el("calendarView").classList.add("hidden");
+        renderList();
+      } else {
+        el("listView").classList.add("hidden");
+        el("calendarView").classList.remove("hidden");
+        renderCalendar();
+      }
+    }
+
+    // view toggle
+    el("viewToggle").querySelectorAll("button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        activeView = btn.dataset.view;
+        el("viewToggle").querySelectorAll("button").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderAll();
+      });
+    });
+
+    // add-stop form
+    el("stopForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const city = el("stopCity").value.trim();
+      const country = el("stopCountry").value.trim();
+      const start = el("stopStart").value;
+      const end = el("stopEnd").value;
+      if (!city || !start || !end) return;
+      trip.stops.push({ city, country, start, end, days: [{ label: "Day 1", date: "TBD", activities: [] }] });
+      activeStopIndex = trip.stops.length - 1;
+      el("stopForm").reset();
+      el("stopForm").classList.remove("open");
+      renderAll();
+    });
+
+    // share (demo — copies the page URL)
+    el("shareBtn").addEventListener("click", () => {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(window.location.href);
+        el("shareBtn").textContent = "✓ Link Copied";
+        setTimeout(() => (el("shareBtn").textContent = "⤴ Share Trip"), 1800);
+      }
+    });
+
+    renderAll();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create a New Trip — Globe Trotter</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ["Georgia", "serif"],
+            sans: ["Arial", "Helvetica", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: #f8f6ed;
+      font-family: Arial, Helvetica, sans-serif;
+      background-image:
+        radial-gradient(circle at 14% 8%, rgba(22,169,177,.06) 0 2px, transparent 3px),
+        radial-gradient(circle at 86% 64%, rgba(22,169,177,.06) 0 2px, transparent 3px);
+      background-size: 110px 110px, 140px 140px;
+    }
+
+    /* ---- shared photo textures (same recipe as the rest of the app) ---- */
+    .photo-one {
+      background:
+        linear-gradient(135deg, rgba(14,74,82,.1), transparent 50%),
+        linear-gradient(145deg, #f4b48e 0 22%, #b5d6c8 22% 58%, #536d71 58%);
+    }
+    .photo-two { background: linear-gradient(180deg, #cce6ef 0 42%, #d6c38b 42% 64%, #789c83 64%); }
+    .photo-three { background: linear-gradient(155deg, #203d49 0 24%, #e7bd76 24% 49%, #5c8c88 49% 100%); }
+    .photo-four { background: linear-gradient(160deg, #8bb8bf 0 38%, #e6dfc5 38% 57%, #c88461 57%); }
+    .photo-five { background: linear-gradient(150deg, #e3c9a6 0 30%, #7fa3a1 30% 55%, #2f4f4d 55%); }
+    .photo-six { background: linear-gradient(170deg, #d7d0b8 0 40%, #a7c4b5 40% 62%, #4c6b64 62%); }
+
+    /* ---- page header ticket ---- */
+    .form-hero {
+      border-radius: 10px; overflow: hidden;
+      box-shadow: 0 16px 32px rgba(20,88,94,.18);
+      background: #0f3a3d; position: relative;
+    }
+    .form-hero::before {
+      content: "";
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 88% 15%, rgba(22,169,177,.35), transparent 45%);
+    }
+    .form-hero-inner { position: relative; padding: 30px 28px 26px; color: #fff; }
+    .form-hero-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: .25em; text-transform: uppercase; opacity: .8; }
+    .form-hero-title { font-family: Georgia, serif; font-style: italic; font-size: 2.05rem; margin: 4px 0 6px; }
+    .form-hero-desc { font-size: .86rem; line-height: 1.6; color: #d8e6e4; max-width: 480px; }
+
+    /* ---- progress steps ---- */
+    .step-row { display: flex; align-items: center; gap: 8px; margin: 22px 0; }
+    .step { display: flex; align-items: center; gap: 8px; }
+    .step-dot {
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .72rem; font-weight: 800;
+      background: #fff; border: 2px solid rgba(22,169,177,.3); color: #8a9a98;
+      transition: all .2s ease;
+    }
+    .step.active .step-dot { background: #16a9b1; border-color: #16a9b1; color: #fff; }
+    .step.done .step-dot { background: #0f3a3d; border-color: #0f3a3d; color: #fff; }
+    .step-label { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #8a9a98; }
+    .step.active .step-label, .step.done .step-label { color: #0f3a3d; }
+    .step-line { flex: 1; height: 2px; background: rgba(22,169,177,.25); min-width: 20px; }
+    .step-line.done { background: #16a9b1; }
+
+    /* ---- card + fields ---- */
+    .form-card {
+      background: #fff; border-radius: 10px; box-shadow: 0 8px 20px rgba(20,88,94,.1);
+      padding: 26px 28px 28px; margin-bottom: 20px;
+    }
+    .form-card-title { font-family: Georgia, serif; font-style: italic; font-size: 1.25rem; color: #0f3a3d; margin-bottom: 4px; }
+    .form-card-sub { font-size: .78rem; color: #8a9a98; margin-bottom: 20px; }
+
+    .field { margin-bottom: 18px; }
+    .field-label {
+      display: block; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+      color: #5c8c88; margin-bottom: 7px;
+    }
+    .field-label .req { color: #b5544d; }
+    .field input[type="text"], .field input[type="date"], .field textarea, .field select {
+      width: 100%; border: 2px solid rgba(22,169,177,.25); border-radius: 8px;
+      padding: 11px 13px; font-size: .87rem; font-family: Arial, Helvetica, sans-serif;
+      background: #f8f6ed; color: #0f3a3d; outline: none; transition: border-color .15s ease;
+    }
+    .field textarea { resize: vertical; min-height: 84px; }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: #16a9b1; }
+    .field.error input, .field.error textarea { border-color: #b5544d; background: #fdf3f2; }
+    .field-error {
+      display: none; align-items: center; gap: 5px;
+      font-size: .72rem; font-weight: 700; color: #b5544d; margin-top: 6px;
+    }
+    .field.error .field-error { display: flex; }
+    .field-hint { font-size: .72rem; color: #8a9a98; margin-top: 6px; }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 560px) { .field-row { grid-template-columns: 1fr; } }
+
+    .char-count { font-size: .68rem; color: #8a9a98; text-align: right; margin-top: 4px; }
+    .char-count.warn { color: #b5544d; font-weight: 700; }
+
+    /* ---- cover photo picker ---- */
+    .cover-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+    @media (max-width: 560px) { .cover-grid { grid-template-columns: repeat(3, 1fr); } }
+    .cover-swatch {
+      position: relative; height: 58px; border-radius: 8px; cursor: pointer;
+      border: 3px solid transparent; transition: all .15s ease;
+    }
+    .cover-swatch.selected { border-color: #16a9b1; box-shadow: 0 0 0 3px rgba(22,169,177,.2); }
+    .cover-swatch-check {
+      position: absolute; top: 4px; right: 4px; width: 18px; height: 18px; border-radius: 50%;
+      background: #16a9b1; color: #fff; font-size: 10px; font-weight: 900;
+      display: none; align-items: center; justify-content: center;
+    }
+    .cover-swatch.selected .cover-swatch-check { display: flex; }
+
+    /* ---- trip type chips ---- */
+    .chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      border: 2px solid rgba(22,169,177,.25); background: #fff; color: #0f3a3d;
+      border-radius: 999px; padding: 8px 15px; font-size: .76rem; font-weight: 700;
+      cursor: pointer; transition: all .15s ease;
+    }
+    .chip.selected { background: #16a9b1; border-color: #16a9b1; color: #fff; }
+    .chip:hover:not(.selected) { border-color: #16a9b1; color: #16a9b1; }
+
+    /* ---- live preview ticket ---- */
+    .preview-ticket {
+      border-radius: 10px; overflow: hidden; box-shadow: 0 12px 26px rgba(20,88,94,.15);
+      position: sticky; top: 24px;
+    }
+    .preview-photo { height: 130px; position: relative; }
+    .preview-photo::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(0deg, rgba(15,58,61,.82) 0%, transparent 65%);
+    }
+    .preview-photo-content { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 16px; z-index: 2; color: #fff; }
+    .preview-eyebrow { font-size: 9px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; opacity: .85; }
+    .preview-title { font-family: Georgia, serif; font-style: italic; font-size: 1.3rem; margin: 2px 0; }
+    .preview-dates { font-size: .72rem; font-weight: 700; opacity: .9; }
+    .preview-body { background: #fff; padding: 14px 16px 16px; }
+    .preview-desc { font-size: .76rem; line-height: 1.5; color: #5b6b6a; margin-bottom: 10px; min-height: 34px; }
+    .preview-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+    .preview-chip { font-size: 9px; font-weight: 800; color: #16a9b1; background: rgba(22,169,177,.1); padding: 3px 8px; border-radius: 999px; }
+    .preview-placeholder { font-size: .72rem; color: #b5c4c2; font-style: italic; font-family: Georgia, serif; }
+
+    /* ---- footer actions ---- */
+    .form-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .btn-primary {
+      background: #16a9b1; color: #fff; border: none; border-radius: 8px; padding: 13px 26px;
+      font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; cursor: pointer;
+    }
+    .btn-primary:hover { background: #0f3a3d; }
+    .btn-ghost {
+      background: transparent; color: #5c8c88; border: none; padding: 13px 6px;
+      font-size: .78rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
+    }
+    .btn-ghost:hover { color: #0f3a3d; }
+
+    .banner-error {
+      display: none; align-items: center; gap: 10px;
+      background: #fdf3f2; border: 2px solid rgba(181,84,77,.3); color: #8a2e29;
+      border-radius: 8px; padding: 12px 16px; font-size: .8rem; font-weight: 700; margin-bottom: 18px;
+    }
+    .banner-error.show { display: flex; }
+
+    /* ---- success state ---- */
+    .success-wrap { display: none; text-align: center; padding: 50px 24px 60px; }
+    .success-wrap.show { display: block; }
+    .success-badge {
+      width: 68px; height: 68px; border-radius: 50%; background: #16a9b1; color: #fff;
+      display: flex; align-items: center; justify-content: center; font-size: 1.7rem;
+      margin: 0 auto 18px;
+    }
+    .success-title { font-family: Georgia, serif; font-style: italic; font-size: 1.6rem; color: #0f3a3d; margin-bottom: 8px; }
+    .success-desc { font-size: .86rem; color: #5b6b6a; max-width: 420px; margin: 0 auto 24px; line-height: 1.6; }
+  </style>
+</head>
+
+<body>
+
+  <!-- top bar -->
+  <div class="mx-auto flex max-w-5xl items-center justify-between px-6 pt-8 pb-2 md:px-10">
+    <a href="dashboard.html" class="font-sans text-sm font-black uppercase tracking-[.2em] text-[#0f3a3d]">
+      globe<span class="text-[#16a9b1]">trotter.</span>
+    </a>
+    <div class="flex items-center gap-5">
+      <a href="mytrip-planner.html" class="text-xs font-bold uppercase tracking-[.2em] text-[#16a9b1] transition hover:text-[#0f3a3d]">My Trips</a>
+      <a href="budget-planner.html" class="text-xs font-bold uppercase tracking-[.2em] text-[#16a9b1] transition hover:text-[#0f3a3d]">Budget</a>
+      <a href="community.html" class="text-xs font-bold uppercase tracking-[.2em] text-[#16a9b1] transition hover:text-[#0f3a3d]">Community</a>
+      <a href="dashboard.html" class="text-xs font-bold uppercase tracking-[.2em] text-[#16a9b1] transition hover:text-[#0f3a3d]">← Explore</a>
+    </div>
+  </div>
+
+  <!-- breadcrumb -->
+  <div class="mx-auto max-w-5xl px-6 md:px-10 pt-2">
+    <a href="mytrip-planner.html" class="text-[11px] font-bold uppercase tracking-[.15em] text-[#8a9a98] hover:text-[#16a9b1]">← Back to My Trips</a>
+  </div>
+
+  <!-- hero -->
+  <section class="mx-auto max-w-5xl px-6 md:px-10 pt-4 pb-2" id="heroSection">
+    <div class="form-hero">
+      <div class="form-hero-inner">
+        <p class="form-hero-eyebrow">New Trip</p>
+        <h1 class="form-hero-title">Where to next?</h1>
+        <p class="form-hero-desc">Fill in the basics — you can add stops, days, and activities once the trip is created.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- steps -->
+  <section class="mx-auto max-w-5xl px-6 md:px-10" id="stepSection">
+    <div class="step-row">
+      <div class="step active" id="stepA1"><span class="step-dot">1</span><span class="step-label">Details</span></div>
+      <div class="step-line" id="stepLine1"></div>
+      <div class="step" id="stepA2"><span class="step-dot">2</span><span class="step-label">Style</span></div>
+      <div class="step-line" id="stepLine2"></div>
+      <div class="step" id="stepA3"><span class="step-dot">3</span><span class="step-label">Review</span></div>
+    </div>
+  </section>
+
+  <!-- form + preview -->
+  <section class="mx-auto max-w-5xl px-6 md:px-10 pb-28 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8" id="formSection">
+    <div>
+      <div class="banner-error" id="bannerError">
+        <span>⚠</span>
+        <span id="bannerErrorText">Please fix the highlighted fields before continuing.</span>
+      </div>
+
+      <form id="tripForm" novalidate>
+        <!-- Trip basics -->
+        <div class="form-card">
+          <div class="form-card-title">trip basics.</div>
+          <div class="form-card-sub">What are we calling this one, and when's it happening?</div>
+
+          <div class="field" id="field-city">
+            <label class="field-label">Destination City <span class="req">*</span></label>
+            <input type="text" id="city" placeholder="e.g. Cape Town" maxlength="40" />
+            <div class="field-error">⚠ Enter the city you're visiting.</div>
+          </div>
+
+          <div class="field-row">
+            <div class="field" id="field-country">
+              <label class="field-label">Country <span class="req">*</span></label>
+              <input type="text" id="country" placeholder="e.g. South Africa" maxlength="40" />
+              <div class="field-error">⚠ Enter a country.</div>
+            </div>
+            <div class="field" id="field-tripname">
+              <label class="field-label">Trip Name</label>
+              <input type="text" id="tripname" placeholder="Defaults to city name" maxlength="40" />
+              <div class="field-hint">Optional — shown on your trip card instead of the city.</div>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field" id="field-start">
+              <label class="field-label">Start Date <span class="req">*</span></label>
+              <input type="date" id="startDate" />
+              <div class="field-error">⚠ Pick a start date.</div>
+            </div>
+            <div class="field" id="field-end">
+              <label class="field-label">End Date <span class="req">*</span></label>
+              <input type="date" id="endDate" />
+              <div class="field-error">⚠ End date must be after the start date.</div>
+            </div>
+          </div>
+
+          <div class="field" id="field-desc">
+            <label class="field-label">Trip Description</label>
+            <textarea id="description" placeholder="What's the plan? e.g. Beaches, hikes, and way too much seafood." maxlength="160"></textarea>
+            <div class="char-count" id="charCount">0 / 160</div>
+          </div>
+        </div>
+
+        <!-- Style -->
+        <div class="form-card">
+          <div class="form-card-title">cover & vibe.</div>
+          <div class="form-card-sub">Pick a cover style and tag the kind of trip this is.</div>
+
+          <div class="field">
+            <label class="field-label">Cover Style <span class="req">*</span></label>
+            <div class="cover-grid" id="coverGrid">
+              <div class="cover-swatch photo-one" data-cover="photo-one"><span class="cover-swatch-check">✓</span></div>
+              <div class="cover-swatch photo-two" data-cover="photo-two"><span class="cover-swatch-check">✓</span></div>
+              <div class="cover-swatch photo-three" data-cover="photo-three"><span class="cover-swatch-check">✓</span></div>
+              <div class="cover-swatch photo-four" data-cover="photo-four"><span class="cover-swatch-check">✓</span></div>
+              <div class="cover-swatch photo-five" data-cover="photo-five"><span class="cover-swatch-check">✓</span></div>
+              <div class="cover-swatch photo-six" data-cover="photo-six"><span class="cover-swatch-check">✓</span></div>
+            </div>
+            <div class="field-error" id="coverError" style="display:none;">⚠ Choose a cover style.</div>
+          </div>
+
+          <div class="field" style="margin-bottom:0;">
+            <label class="field-label">Trip Type</label>
+            <div class="chip-grid" id="chipGrid">
+              <button type="button" class="chip" data-chip="Solo">Solo</button>
+              <button type="button" class="chip" data-chip="Family">Family</button>
+              <button type="button" class="chip" data-chip="Budget">Budget</button>
+              <button type="button" class="chip" data-chip="Luxury">Luxury</button>
+              <button type="button" class="chip" data-chip="Adventure">Adventure</button>
+              <button type="button" class="chip" data-chip="Road Trip">Road Trip</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-ghost" onclick="window.location.href='mytrip-planner.html'">Cancel</button>
+          <button type="submit" class="btn-primary" id="submitBtn">Create Trip →</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- live preview -->
+    <aside>
+      <div class="preview-ticket" id="previewTicket">
+        <div class="preview-photo photo-one" id="previewPhoto">
+          <div class="preview-photo-content">
+            <p class="preview-eyebrow" id="previewEyebrow">New Trip</p>
+            <div class="preview-title" id="previewTitle">Your trip</div>
+            <div class="preview-dates" id="previewDates">Pick your dates</div>
+          </div>
+        </div>
+        <div class="preview-body">
+          <p class="preview-desc" id="previewDesc"><span class="preview-placeholder">Your description will show up here.</span></p>
+          <div class="preview-chips" id="previewChips"></div>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- success state -->
+  <section class="mx-auto max-w-3xl px-6 md:px-10 success-wrap" id="successWrap">
+    <div class="success-badge">✓</div>
+    <h2 class="success-title" id="successTitle">Trip created!</h2>
+    <p class="success-desc" id="successDesc">Your trip has been added to My Trips. Head over to start filling in stops, days, and activities.</p>
+    <div class="form-actions" style="justify-content:center;">
+      <button class="btn-primary" onclick="window.location.href='trip-itinerary.html'">Open Itinerary →</button>
+      <button class="btn-ghost" onclick="window.location.href='mytrip-planner.html'">Back to My Trips</button>
+    </div>
+  </section>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+
+    let selectedCover = null;
+    const selectedChips = new Set();
+
+    // ---- cover swatch selection ----
+    el("coverGrid").querySelectorAll(".cover-swatch").forEach((sw) => {
+      sw.addEventListener("click", () => {
+        el("coverGrid").querySelectorAll(".cover-swatch").forEach((s) => s.classList.remove("selected"));
+        sw.classList.add("selected");
+        selectedCover = sw.dataset.cover;
+        el("field-cover") && el("field-cover").classList.remove("error");
+        el("coverError").style.display = "none";
+        updatePreview();
+      });
+    });
+
+    // ---- trip type chips ----
+    el("chipGrid").querySelectorAll(".chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        chip.classList.toggle("selected");
+        const val = chip.dataset.chip;
+        selectedChips.has(val) ? selectedChips.delete(val) : selectedChips.add(val);
+        updatePreview();
+      });
+    });
+
+    // ---- description char count ----
+    el("description").addEventListener("input", () => {
+      const len = el("description").value.length;
+      el("charCount").textContent = `${len} / 160`;
+      el("charCount").classList.toggle("warn", len > 140);
+      updatePreview();
+    });
+
+    // ---- live field updates ----
+    ["city", "country", "tripname", "startDate", "endDate"].forEach((id) => {
+      el(id).addEventListener("input", updatePreview);
+    });
+
+    function fmtDate(v) {
+      if (!v) return null;
+      const d = new Date(v + "T00:00:00");
+      return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    }
+
+    function updatePreview() {
+      const city = el("city").value.trim();
+      const country = el("country").value.trim();
+      const name = el("tripname").value.trim();
+      const start = el("startDate").value;
+      const end = el("endDate").value;
+      const desc = el("description").value.trim();
+
+      el("previewPhoto").className = "preview-photo " + (selectedCover || "photo-one");
+      el("previewTitle").textContent = name || city || "Your trip";
+      el("previewEyebrow").textContent = country ? `Trip to ${country}` : "New Trip";
+
+      if (start && end) {
+        el("previewDates").textContent = `${fmtDate(start)} – ${fmtDate(end)}`;
+      } else if (start) {
+        el("previewDates").textContent = `Starts ${fmtDate(start)}`;
+      } else {
+        el("previewDates").textContent = "Pick your dates";
+      }
+
+      el("previewDesc").innerHTML = desc
+        ? desc
+        : `<span class="preview-placeholder">Your description will show up here.</span>`;
+
+      el("previewChips").innerHTML = [...selectedChips].map(c => `<span class="preview-chip">${c}</span>`).join("");
+    }
+
+    // ---- validation ----
+    function setError(fieldId, hasError) {
+      const field = el(fieldId);
+      field.classList.toggle("error", hasError);
+    }
+
+    function validate() {
+      let valid = true;
+
+      const city = el("city").value.trim();
+      const country = el("country").value.trim();
+      const start = el("startDate").value;
+      const end = el("endDate").value;
+
+      setError("field-city", !city);
+      if (!city) valid = false;
+
+      setError("field-country", !country);
+      if (!country) valid = false;
+
+      setError("field-start", !start);
+      if (!start) valid = false;
+
+      const endInvalid = !end || (start && end && new Date(end) < new Date(start));
+      setError("field-end", endInvalid);
+      if (endInvalid) valid = false;
+
+      const coverMissing = !selectedCover;
+      el("coverError").style.display = coverMissing ? "flex" : "none";
+      if (coverMissing) valid = false;
+
+      el("bannerError").classList.toggle("show", !valid);
+
+      return valid;
+    }
+
+    el("tripForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!validate()) {
+        el("bannerError").scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+
+      const city = el("city").value.trim();
+      const name = el("tripname").value.trim() || city;
+
+      el("heroSection").style.display = "none";
+      el("stepSection").style.display = "none";
+      el("formSection").style.display = "none";
+
+      el("successTitle").textContent = `${name} is on the map!`;
+      el("successDesc").textContent = `Your trip has been added to My Trips. Head over to start filling in stops, days, and activities.`;
+      el("successWrap").classList.add("show");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    updatePreview();
+  </script>
+
+</body>
+</html>

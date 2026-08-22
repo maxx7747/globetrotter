@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Budget Planner — Globe Trotter</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: #f8f6ed;
+      font-family: Arial, Helvetica, sans-serif;
+      background-image:
+        radial-gradient(circle at 14% 8%, rgba(22,169,177,.06) 0 2px, transparent 3px),
+        radial-gradient(circle at 86% 64%, rgba(22,169,177,.06) 0 2px, transparent 3px);
+      background-size: 110px 110px, 140px 140px;
+    }
+
+    /* ---- trip selector tabs ---- */
+    .trip-tabs { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 22px; }
+    .trip-tab {
+      flex: 0 0 auto;
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: 2px solid rgba(22,169,177,.3);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #0f3a3d;
+      background: #fff;
+      cursor: pointer;
+      transition: all .2s ease;
+      white-space: nowrap;
+    }
+    .trip-tab.active { background: #16a9b1; border-color: #16a9b1; color: #fff; }
+    .trip-tab:hover:not(.active) { border-color: #16a9b1; }
+
+    /* ---- the ticket ---- */
+    .ticket {
+      position: relative;
+      background: #fff;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 16px 32px rgba(20,88,94,.18);
+    }
+
+    .ticket-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #16a9b1;
+      color: #fff;
+      padding: 14px 28px;
+      border-bottom: 2px dashed rgba(255,255,255,.5);
+    }
+    .ticket-head-label { font-size: 11px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
+    .ticket-head-dest { font-family: Georgia, serif; font-style: italic; font-size: 1.35rem; }
+
+    .ticket-body { padding: 28px 28px 32px; }
+
+    .perforation { position: relative; height: 0; margin: 26px -28px; border-top: 2px dashed rgba(22,169,177,.35); }
+    .perforation::before, .perforation::after {
+      content: ""; position: absolute; top: -11px; width: 22px; height: 22px;
+      background: #f8f6ed; border-radius: 50%;
+    }
+    .perforation::before { left: -11px; }
+    .perforation::after { right: -11px; }
+
+    /* ---- budget summary ---- */
+    .budget-input-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .budget-input-row label { font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: #5c8c88; }
+    .budget-input-wrap { display: flex; align-items: center; gap: 4px; background: #f8f6ed; border: 2px solid rgba(22,169,177,.25); border-radius: 8px; padding: 6px 12px; }
+    .budget-input-wrap span { color: #5c8c88; font-weight: 700; }
+    .budget-input-wrap input { border: none; background: transparent; outline: none; width: 110px; font-size: 1rem; font-weight: 700; color: #0f3a3d; text-align: right; }
+
+    .budget-progress-track { position: relative; height: 14px; border-radius: 999px; background: #eee9d8; border: 2px dashed rgba(22,169,177,.3); overflow: hidden; }
+    .budget-progress-fill { height: 100%; border-radius: 999px; background: #16a9b1; transition: width .3s ease, background .3s ease; }
+    .budget-progress-fill.over { background: #d9534f; }
+
+    .budget-stats { display: flex; justify-content: space-between; margin-top: 12px; }
+    .stat-label { display: block; font-size: 10px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: #5c8c88; }
+    .stat-value { display: block; margin-top: 2px; font-family: Georgia, serif; font-style: italic; font-size: 1.3rem; color: #0f3a3d; }
+    .stat-value.over { color: #d9534f; }
+
+    /* ---- category breakdown ---- */
+    .category-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .category-row:last-child { margin-bottom: 0; }
+    .category-dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
+    .category-name { width: 110px; flex: 0 0 auto; font-size: .78rem; font-weight: 700; color: #0f3a3d; }
+    .category-bar-track { flex: 1; height: 8px; border-radius: 999px; background: #eee9d8; overflow: hidden; }
+    .category-bar-fill { height: 100%; border-radius: 999px; transition: width .3s ease; }
+    .category-amount { width: 84px; flex: 0 0 auto; text-align: right; font-size: .78rem; font-weight: 700; color: #5b6b6a; }
+
+    /* ---- add-expense form ---- */
+    .expense-form { display: grid; grid-template-columns: 140px 1fr 110px auto; gap: 8px; margin-bottom: 18px; }
+    .expense-form select, .expense-form input {
+      border: 2px solid rgba(22,169,177,.25); border-radius: 8px; padding: 9px 10px;
+      font-size: .85rem; background: #f8f6ed; color: #0f3a3d; outline: none;
+    }
+    .expense-form select:focus, .expense-form input:focus { border-color: #16a9b1; }
+    .expense-form button {
+      background: #0f3a3d; color: #fff; border: none; border-radius: 8px; padding: 9px 18px;
+      font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+      cursor: pointer; transition: background .2s ease;
+    }
+    .expense-form button:hover { background: #16a9b1; }
+
+    @media (max-width: 640px) {
+      .expense-form { grid-template-columns: 1fr 1fr; }
+      .expense-form button { grid-column: 1 / -1; }
+    }
+
+    /* ---- expense ledger ---- */
+    .expense-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; }
+    .expense-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #f8f6ed; border-radius: 8px; }
+    .expense-tag { flex: 0 0 auto; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 4px 8px; border-radius: 999px; color: #fff; }
+    .expense-label { flex: 1; font-size: .85rem; color: #0f3a3d; }
+    .expense-amount { flex: 0 0 auto; font-weight: 700; font-size: .85rem; color: #0f3a3d; }
+    .expense-delete { flex: 0 0 auto; border: none; background: transparent; color: #b5544d; font-size: 1.1rem; cursor: pointer; line-height: 1; padding: 2px 6px; }
+    .expense-delete:hover { color: #8a2e29; }
+    .expense-empty { text-align: center; padding: 22px; font-size: .85rem; color: #8a9a98; font-style: italic; font-family: Georgia, serif; }
+  </style>
+</head>
+
+<body>
+
+  <!-- top bar -->
+  <div class="mx-auto flex max-w-3xl items-center justify-between px-6 pt-8 pb-2 md:px-10">
+    <a href="dashboard.html" class="font-sans text-sm font-black uppercase tracking-[.2em] text-[#0f3a3d]">
+      globe<span class="text-[#16a9b1]">trotter.</span>
+    </a>
+    <div class="flex items-center gap-5">
+      <a href="mytrip-planner.html" class="text-xs font-bold uppercase tracking-[.2em] text-[#16a9b1] transition hover:text-[#0f3a3d]">My Trips</a>
+      <a href="dashboard.html" class="text-xs font-bold uppercase tracking-[.2em] text-[#16a9b1] transition hover:text-[#0f3a3d]">← Explore</a>
+    </div>
+  </div>
+
+  <!-- header -->
+  <section class="mx-auto max-w-3xl px-6 pb-8 pt-10 text-center md:pt-14">
+    <div class="mb-4 inline-flex items-center gap-2 rounded-full bg-[#16a9b1]/10 px-4 py-1 text-xs font-semibold uppercase tracking-[.35em] text-[#16a9b1]">
+      <span class="h-1.5 w-1.5 rounded-full bg-[#16a9b1]"></span>
+      Budget Planner
+      <span class="h-1.5 w-1.5 rounded-full bg-[#16a9b1]"></span>
+    </div>
+    <h1 class="font-sans text-5xl font-black leading-[.9] tracking-tight text-[#0f3a3d] sm:text-6xl">count the coins.</h1>
+    <p class="mx-auto mt-5 max-w-md text-base text-[#5b6b6a]">Know what each trip costs before you pack the bags.</p>
+  </section>
+
+  <!-- planner -->
+  <section class="mx-auto max-w-3xl px-6 pb-28">
+    <div class="trip-tabs" id="tripTabs"></div>
+
+    <div class="ticket">
+      <div class="ticket-head">
+        <span class="ticket-head-label">✈ Budget Boarding Pass</span>
+        <span class="ticket-head-dest" id="ticketDest"></span>
+      </div>
+
+      <div class="ticket-body">
+        <div class="budget-input-row">
+          <label>Total budget</label>
+          <div class="budget-input-wrap">
+            <span>₹</span><input type="number" id="totalBudget" min="0" step="100" />
+          </div>
+        </div>
+        <div class="budget-progress-track">
+          <div class="budget-progress-fill" id="progressFill"></div>
+        </div>
+        <div class="budget-stats">
+          <div><span class="stat-label">Spent</span><span class="stat-value" id="spentValue"></span></div>
+          <div><span class="stat-label">Remaining</span><span class="stat-value" id="remainingValue"></span></div>
+        </div>
+
+        <div class="perforation"></div>
+
+        <div id="categoryBreakdown"></div>
+
+        <div class="perforation"></div>
+
+        <div class="expense-form">
+          <select id="expenseCategory"></select>
+          <input type="text" id="expenseLabel" placeholder="What was it for?" />
+          <input type="number" id="expenseAmount" placeholder="Amount" min="0" step="1" />
+          <button id="addExpenseBtn" type="button">Add</button>
+        </div>
+
+        <ul class="expense-list" id="expenseList"></ul>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // ---- EDIT YOUR TRIPS / STARTING BUDGETS HERE ----
+    const CATEGORIES = [
+      { id: "stay", label: "Stay", color: "#16a9b1" },
+      { id: "food", label: "Food & Drink", color: "#e0a85c" },
+      { id: "transport", label: "Transport", color: "#5c8c88" },
+      { id: "activities", label: "Activities", color: "#789c83" },
+      { id: "shopping", label: "Shopping", color: "#c88461" },
+      { id: "misc", label: "Misc", color: "#8a9a98" }
+    ];
+
+    const budgets = {
+      "Diu, Gujarat": {
+        total: 8000,
+        expenses: [
+          { category: "transport", label: "Bus tickets (round trip)", amount: 1200 },
+          { category: "food", label: "Beach shack lunch", amount: 450 }
+        ]
+      },
+      "Manali, Himachal Pradesh": { total: 18000, expenses: [] },
+      "Kyoto, Japan": { total: 90000, expenses: [] }
+    };
+    // ---- END EDIT ZONE ----
+
+    let currentTrip = Object.keys(budgets)[0];
+
+    const el = (id) => document.getElementById(id);
+    const inr = (n) => "₹" + Math.abs(n).toLocaleString("en-IN");
+
+    function renderTabs() {
+      const wrap = el("tripTabs");
+      wrap.innerHTML = Object.keys(budgets)
+        .map((name) => `<button class="trip-tab ${name === currentTrip ? "active" : ""}" data-trip="${name}">${name.split(",")[0]}</button>`)
+        .join("");
+      wrap.querySelectorAll(".trip-tab").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          currentTrip = btn.dataset.trip;
+          renderAll();
+        });
+      });
+    }
+
+    function renderCategoryOptions() {
+      el("expenseCategory").innerHTML = CATEGORIES.map((c) => `<option value="${c.id}">${c.label}</option>`).join("");
+    }
+
+    function renderAll() {
+      renderTabs();
+      const data = budgets[currentTrip];
+      el("ticketDest").textContent = currentTrip;
+      el("totalBudget").value = data.total;
+
+      const spent = data.expenses.reduce((s, e) => s + e.amount, 0);
+      const remaining = data.total - spent;
+      const pct = data.total > 0 ? Math.min((spent / data.total) * 100, 100) : 0;
+      const over = spent > data.total;
+
+      const fill = el("progressFill");
+      fill.style.width = pct + "%";
+      fill.classList.toggle("over", over);
+
+      el("spentValue").textContent = inr(spent);
+      const remainingEl = el("remainingValue");
+      remainingEl.textContent = (over ? "−" : "") + inr(remaining);
+      remainingEl.classList.toggle("over", over);
+
+      const totals = {};
+      CATEGORIES.forEach((c) => (totals[c.id] = 0));
+      data.expenses.forEach((e) => (totals[e.category] = (totals[e.category] || 0) + e.amount));
+      const maxVal = Math.max(1, ...Object.values(totals));
+
+      el("categoryBreakdown").innerHTML = CATEGORIES.map((c) => {
+        const val = totals[c.id];
+        const w = (val / maxVal) * 100;
+        return `<div class="category-row">
+          <span class="category-dot" style="background:${c.color}"></span>
+          <span class="category-name">${c.label}</span>
+          <span class="category-bar-track"><span class="category-bar-fill" style="width:${w}%; background:${c.color}"></span></span>
+          <span class="category-amount">${inr(val)}</span>
+        </div>`;
+      }).join("");
+
+      const list = el("expenseList");
+      if (data.expenses.length === 0) {
+        list.innerHTML = '<li class="expense-empty">No expenses logged yet — add your first one below.</li>';
+      } else {
+        list.innerHTML = data.expenses
+          .map((e, i) => {
+            const cat = CATEGORIES.find((c) => c.id === e.category);
+            return `<li class="expense-item">
+              <span class="expense-tag" style="background:${cat.color}">${cat.label}</span>
+              <span class="expense-label">${e.label}</span>
+              <span class="expense-amount">${inr(e.amount)}</span>
+              <button class="expense-delete" data-idx="${i}" title="Remove">×</button>
+            </li>`;
+          })
+          .join("");
+        list.querySelectorAll(".expense-delete").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            data.expenses.splice(Number(btn.dataset.idx), 1);
+            renderAll();
+          });
+        });
+      }
+    }
+
+    el("totalBudget").addEventListener("input", (e) => {
+      budgets[currentTrip].total = Number(e.target.value) || 0;
+      renderAll();
+    });
+
+    el("addExpenseBtn").addEventListener("click", () => {
+      const category = el("expenseCategory").value;
+      const label = el("expenseLabel").value.trim();
+      const amount = Number(el("expenseAmount").value);
+      if (!label || !amount || amount <= 0) return;
+      budgets[currentTrip].expenses.push({ category, label, amount });
+      el("expenseLabel").value = "";
+      el("expenseAmount").value = "";
+      renderAll();
+    });
+
+    renderCategoryOptions();
+    renderAll();
+  </script>
+
+</body>
+</html>

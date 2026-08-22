@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Trips — Globe Trotter</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ["Georgia", "serif"],
+            sans: ["Arial", "Helvetica", "sans-serif"]
+          },
+          animation: {
+            drift: "drift 8s ease-in-out infinite"
+          },
+          keyframes: {
+            drift: {
+              "0%, 100%": { transform: "translateX(0)" },
+              "50%": { transform: "translateX(14px)" }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: #f8f6ed;
+      font-family: Arial, Helvetica, sans-serif;
+      background-image:
+        radial-gradient(circle at 14% 8%, rgba(22,169,177,.06) 0 2px, transparent 3px),
+        radial-gradient(circle at 86% 64%, rgba(22,169,177,.06) 0 2px, transparent 3px);
+      background-size: 110px 110px, 140px 140px;
+    }
+
+    /* ---- shared photo textures (same recipe as the homepage postcards) ---- */
+    .photo-one {
+      background:
+        linear-gradient(135deg, rgba(14,74,82,.1), transparent 50%),
+        linear-gradient(145deg, #f4b48e 0 22%, #b5d6c8 22% 58%, #536d71 58%);
+    }
+    .photo-two {
+      background: linear-gradient(180deg, #cce6ef 0 42%, #d6c38b 42% 64%, #789c83 64%);
+    }
+    .photo-three {
+      background: linear-gradient(155deg, #203d49 0 24%, #e7bd76 24% 49%, #5c8c88 49% 100%);
+    }
+    .photo-four {
+      background: linear-gradient(160deg, #8bb8bf 0 38%, #e6dfc5 38% 57%, #c88461 57%);
+    }
+
+    /* ---- timeline scaffold ---- */
+    .timeline { position: relative; padding-top: 4px; }
+
+    .timeline-track {
+      position: absolute;
+      left: 50%;
+      top: 46px;
+      bottom: 10px;
+      border-left: 3px dashed rgba(22,169,177,.35);
+      transform: translateX(-1.5px);
+      z-index: 0;
+    }
+
+    .timeline-row {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 64px;
+      margin-bottom: 56px;
+      z-index: 1;
+    }
+    .timeline-row.left .timeline-item { grid-column: 1; }
+    .timeline-row.right .timeline-item { grid-column: 2; }
+
+    .row-pin {
+      position: absolute;
+      left: 50%;
+      top: 36px;
+      width: 18px;
+      height: 18px;
+      background: #16a9b1;
+      border-radius: 50% 50% 50% 0;
+      transform: translate(-50%, -50%) rotate(-45deg);
+      box-shadow: 0 6px 12px rgba(16,104,111,.3), inset 0 0 0 4px #f8f6ed;
+      z-index: 2;
+    }
+
+    /* ---- postcard trip card ---- */
+    .trip-card {
+      position: relative;
+      background: #fff;
+      border: 6px solid #fff;
+      box-shadow: 0 12px 24px rgba(20,88,94,.15);
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+    .timeline-row.left .trip-card { transform: rotate(-.6deg); }
+    .timeline-row.right .trip-card { transform: rotate(.6deg); }
+    .trip-card:hover {
+      transform: translateY(-4px) scale(1.015) !important;
+      box-shadow: 0 20px 32px rgba(20,88,94,.22);
+    }
+
+    .trip-photo { position: relative; height: 150px; overflow: hidden; }
+    .trip-body { padding: 16px 18px 18px; background: #f8f6ed; }
+    .trip-dates {
+      margin: 0;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: #5c8c88;
+    }
+    .trip-city {
+      margin: 2px 0 0;
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 1.55rem;
+      color: #0f3a3d;
+    }
+    .trip-country {
+      font-family: Arial, Helvetica, sans-serif;
+      font-style: normal;
+      font-size: 1rem;
+      color: #5b6b6a;
+    }
+    .trip-note {
+      margin: 8px 0 0;
+      font-size: .85rem;
+      line-height: 1.5;
+      color: #5b6b6a;
+    }
+
+    .card-stamp {
+      position: absolute;
+      top: -14px;
+      right: -14px;
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      line-height: 1.25;
+      transform: rotate(8deg);
+      border: 3px dotted rgba(255,255,255,.9);
+    }
+    .card-stamp.upcoming { background: #16a9b1; color: #fff; }
+    .card-stamp.past { background: #5c7a78; color: #fff; }
+
+    /* ---- markers along the route ---- */
+    .stop-marker { position: relative; display: flex; justify-content: center; margin: 4px 0 40px; z-index: 2; }
+    .stop-marker span {
+      background: #16a9b1;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      padding: 8px 22px;
+      border-radius: 999px;
+      box-shadow: 0 8px 16px rgba(20,88,94,.2);
+    }
+
+    .today-marker { position: relative; display: flex; justify-content: center; margin: 8px 0 48px; z-index: 2; }
+    .today-marker .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 3px dashed #16a9b1;
+      padding: 10px 24px;
+      border-radius: 999px;
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 1.05rem;
+      color: #0f3a3d;
+    }
+
+    .end-marker {
+      position: relative;
+      text-align: center;
+      margin-top: 8px;
+      font-family: Georgia, serif;
+      font-style: italic;
+      color: #8a9a98;
+      font-size: 1rem;
+      z-index: 2;
+    }
+
+    @media (max-width: 768px) {
+      .timeline-track { left: 22px; }
+      .timeline-row { grid-template-columns: 1fr; column-gap: 0; }
+      .timeline-row.left .timeline-item,
+      .timeline-row.right .timeline-item { grid-column: 1; margin-left: 48px; }
+      .row-pin { left: 22px; top: 36px; }
+      .timeline-row.left .trip-card,
+      .timeline-row.right .trip-card { transform: none; }
+      .timeline-row.left .trip-card:hover,
+      .timeline-row.right .trip-card:hover { transform: translateY(-4px) !important; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- top bar -->
+  <div class="mx-auto flex max-w-5xl items-center justify-between px-6 pt-8 pb-2 md:px-10">
+    <a href="dashboard.html" class="font-sans text-sm font-black uppercase tracking-[.2em] text-[#0f3a3d]">
+      globe<span class="text-[#16a9b1]">trotter.</span>
+    </a>
+    <div class="flex items-center gap-5">
+      <a href="budget-planner.html" class="text-xs font-bold uppercase tracking-[.2em] text-[#16a9b1] transition hover:text-[#0f3a3d]">Budget</a>
+      <a href="dashboard.html" class="text-xs font-bold uppercase tracking-[.2em] text-[#16a9b1] transition hover:text-[#0f3a3d]">← Explore</a>
+    </div>
+  </div>
+
+  <!-- header -->
+  <section class="mx-auto max-w-3xl px-6 pb-6 pt-10 text-center md:pt-14">
+    <div class="mb-4 inline-flex items-center gap-2 rounded-full bg-[#16a9b1]/10 px-4 py-1 text-xs font-semibold uppercase tracking-[.35em] text-[#16a9b1]">
+      <span class="h-1.5 w-1.5 rounded-full bg-[#16a9b1]"></span>
+      My Journeys
+      <span class="h-1.5 w-1.5 rounded-full bg-[#16a9b1]"></span>
+    </div>
+    <h1 class="font-sans text-5xl font-black leading-[.9] tracking-tight text-[#0f3a3d] sm:text-6xl">the trips.</h1>
+    <p class="mx-auto mt-5 max-w-md text-base text-[#5b6b6a]">
+      Every stamp, every ticket stub, every layover — mapped out below.
+    </p>
+    <span class="mt-6 inline-block animate-drift text-2xl text-[#16a9b1]">✈</span>
+  </section>
+
+  <!-- timeline -->
+  <section class="mx-auto max-w-4xl px-6 pb-28">
+    <div class="timeline" id="timeline">
+      <div class="timeline-track"></div>
+    </div>
+  </section>
+
+  <script>
+    // ---- EDIT YOUR TRIPS HERE ----
+    // Upcoming: soonest first. Past: most recent first.
+    const upcomingTrips = [
+      { city: "Diu", country: "Gujarat", dates: "12–14 Sep 2026", note: "Weekend coastal reset before the semester gets heavy.", photo: "photo-one" },
+      { city: "Manali", country: "Himachal Pradesh", dates: "20–27 Dec 2026", note: "Snow, mountains, and a much-needed disconnect.", photo: "photo-two" },
+      { city: "Kyoto", country: "Japan", dates: "8–18 Mar 2027", note: "The long-haul dream trip — temples, ramen, cherry blossoms.", photo: "photo-three" }
+    ];
+
+    const pastTrips = [
+      { city: "Udaipur", country: "Rajasthan", dates: "15–17 May 2026", note: "Lake palaces and way too many photos.", photo: "photo-four" },
+      { city: "Rishikesh", country: "Uttarakhand", dates: "2–5 Jan 2026", note: "Rafting, yoga, and cold mornings by the Ganges.", photo: "photo-one" },
+      { city: "Goa", country: "India", dates: "27–31 Dec 2025", note: "New Year on the beach with the whole crew.", photo: "photo-two" }
+    ];
+    // ---- END EDIT ZONE ----
+
+    function renderStopMarker(text) {
+      return `<div class="stop-marker"><span>${text}</span></div>`;
+    }
+
+    function renderTodayMarker() {
+      return `<div class="today-marker"><span class="badge">✦ You are here</span></div>`;
+    }
+
+    function renderEndMarker() {
+      return `<div class="end-marker">Next stop: unwritten.</div>`;
+    }
+
+    function renderCard(trip, status, side) {
+      const stampLabel = status === "upcoming" ? "Upcoming" : "Visited";
+      return `
+        <div class="timeline-row ${side}">
+          <span class="row-pin"></span>
+          <div class="timeline-item">
+            <article class="trip-card">
+              <div class="trip-photo ${trip.photo}">
+                <span class="card-stamp ${status}">${stampLabel}</span>
+              </div>
+              <div class="trip-body">
+                <p class="trip-dates">${trip.dates}</p>
+                <h3 class="trip-city">${trip.city} <span class="trip-country">, ${trip.country}</span></h3>
+                <p class="trip-note">${trip.note}</p>
+              </div>
+            </article>
+          </div>
+        </div>`;
+    }
+
+    let side = "left";
+    let html = "";
+
+    html += renderStopMarker("Upcoming");
+    upcomingTrips.forEach((t) => {
+      html += renderCard(t, "upcoming", side);
+      side = side === "left" ? "right" : "left";
+    });
+
+    html += renderTodayMarker();
+    html += renderStopMarker("Past");
+    pastTrips.forEach((t) => {
+      html += renderCard(t, "past", side);
+      side = side === "left" ? "right" : "left";
+    });
+
+    html += renderEndMarker();
+
+    document.getElementById("timeline").insertAdjacentHTML("beforeend", html);
+  </script>
+
+</body>
+</html>

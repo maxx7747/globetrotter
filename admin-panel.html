@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — Globe Trotter</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ["Georgia", "serif"],
+            sans: ["Arial", "Helvetica", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: #f8f6ed;
+      font-family: Arial, Helvetica, sans-serif;
+      background-image:
+        radial-gradient(circle at 14% 8%, rgba(22,169,177,.06) 0 2px, transparent 3px),
+        radial-gradient(circle at 86% 64%, rgba(22,169,177,.06) 0 2px, transparent 3px);
+      background-size: 110px 110px, 140px 140px;
+    }
+
+    .shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+    @media (max-width: 900px) { .shell { grid-template-columns: 1fr; } }
+
+    /* ---- sidebar ---- */
+    .sidebar {
+      background: #0f3a3d; color: #fff;
+      padding: 24px 18px 24px;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    @media (max-width: 900px) { .sidebar { position: relative; height: auto; } }
+    .sidebar-brand { font-size: .85rem; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; padding: 4px 10px 24px; }
+    .sidebar-brand span { color: #16a9b1; }
+    .sidebar-tag { font-size: 9px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: #7fb0ac; padding: 0 10px 18px; margin-top: -18px; }
+    .nav-group-label { font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #6b9b96; padding: 14px 10px 8px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px; width: 100%;
+      padding: 10px 12px; border-radius: 8px; border: none; background: transparent;
+      color: #cfe4e1; font-size: .82rem; font-weight: 700; text-align: left; cursor: pointer;
+      margin-bottom: 2px; transition: all .15s ease;
+    }
+    .nav-item:hover { background: rgba(255,255,255,.06); color: #fff; }
+    .nav-item.active { background: #16a9b1; color: #fff; }
+    .nav-badge {
+      margin-left: auto; background: #b5544d; color: #fff; font-size: 10px; font-weight: 800;
+      border-radius: 999px; padding: 1px 7px;
+    }
+    .sidebar-foot {
+      margin-top: 24px; padding: 12px; border-radius: 8px; background: rgba(255,255,255,.06);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sidebar-foot-avatar {
+      width: 32px; height: 32px; border-radius: 50%; background: #16a9b1;
+      display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .75rem; flex: 0 0 auto;
+    }
+    .sidebar-foot-name { font-size: .78rem; font-weight: 700; }
+    .sidebar-foot-role { font-size: .66rem; color: #9fc3c0; }
+
+    /* ---- main ---- */
+    .main { padding: 26px 30px 60px; }
+    @media (max-width: 640px) { .main { padding: 20px 16px 50px; } }
+
+    .page-head { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 22px; }
+    .page-title { font-family: Georgia, serif; font-style: italic; font-size: 1.7rem; color: #0f3a3d; }
+    .page-sub { font-size: .82rem; color: #8a9a98; margin-top: 2px; }
+    .page-actions { display: flex; gap: 10px; }
+    .btn-primary {
+      background: #16a9b1; color: #fff; border: none; border-radius: 8px; padding: 10px 18px;
+      font-size: .74rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
+    }
+    .btn-primary:hover { background: #0f3a3d; }
+    .btn-ghost {
+      background: #fff; color: #0f3a3d; border: 2px solid rgba(22,169,177,.3); border-radius: 8px; padding: 9px 16px;
+      font-size: .74rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
+    }
+    .btn-ghost:hover { border-color: #16a9b1; color: #16a9b1; }
+
+    /* ---- stat cards ---- */
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 22px; }
+    @media (max-width: 900px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .stat-grid { grid-template-columns: 1fr; } }
+    .stat-card { background: #fff; border-radius: 10px; padding: 18px 20px; box-shadow: 0 8px 20px rgba(20,88,94,.1); }
+    .stat-label { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #8a9a98; }
+    .stat-value { font-family: Georgia, serif; font-style: italic; font-size: 1.8rem; color: #0f3a3d; margin: 4px 0 6px; }
+    .stat-delta { font-size: .72rem; font-weight: 800; }
+    .stat-delta.up { color: #2e8b6f; }
+    .stat-delta.down { color: #b5544d; }
+
+    /* ---- panel ---- */
+    .panel { background: #fff; border-radius: 10px; box-shadow: 0 8px 20px rgba(20,88,94,.1); margin-bottom: 20px; overflow: hidden; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 2px dashed rgba(22,169,177,.25); flex-wrap: wrap; gap: 10px; }
+    .panel-title { font-family: Georgia, serif; font-style: italic; font-size: 1.1rem; color: #0f3a3d; }
+    .search-input {
+      border: 2px solid rgba(22,169,177,.25); border-radius: 999px; padding: 8px 14px;
+      font-size: .78rem; background: #f8f6ed; color: #0f3a3d; outline: none; min-width: 200px;
+    }
+    .search-input:focus { border-color: #16a9b1; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+      color: #8a9a98; padding: 10px 20px; border-bottom: 1px solid rgba(22,169,177,.15); white-space: nowrap;
+    }
+    td { padding: 12px 20px; font-size: .82rem; color: #35473f; border-bottom: 1px solid rgba(22,169,177,.08); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    .cell-user { display: flex; align-items: center; gap: 10px; }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 50%; flex: 0 0 auto;
+      display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: .7rem; font-family: Georgia, serif;
+    }
+    .cell-name { font-weight: 700; color: #0f3a3d; }
+    .cell-sub { font-size: .7rem; color: #8a9a98; }
+
+    .badge { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .04em; padding: 4px 10px; border-radius: 999px; }
+    .badge-active { background: rgba(46,139,111,.12); color: #2e8b6f; }
+    .badge-suspended { background: rgba(181,84,77,.12); color: #b5544d; }
+    .badge-pending { background: rgba(224,168,92,.15); color: #a6762e; }
+    .badge-flagged { background: rgba(181,84,77,.12); color: #b5544d; }
+
+    .row-actions { display: flex; gap: 8px; }
+    .row-btn {
+      border: 1px solid rgba(22,169,177,.3); background: #fff; color: #0f3a3d;
+      border-radius: 6px; padding: 5px 10px; font-size: .68rem; font-weight: 800; cursor: pointer;
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+    .row-btn:hover { border-color: #16a9b1; color: #16a9b1; }
+    .row-btn.danger { border-color: rgba(181,84,77,.35); color: #b5544d; }
+    .row-btn.danger:hover { background: #b5544d; color: #fff; border-color: #b5544d; }
+    .row-btn.good { border-color: rgba(46,139,111,.35); color: #2e8b6f; }
+    .row-btn.good:hover { background: #2e8b6f; color: #fff; border-color: #2e8b6f; }
+
+    .table-empty { padding: 30px 20px; text-align: center; font-size: .82rem; color: #8a9a98; font-style: italic; font-family: Georgia, serif; }
+
+    /* ---- moderation card ---- */
+    .mod-card { padding: 16px 20px; border-bottom: 1px solid rgba(22,169,177,.1); display: flex; gap: 14px; align-items: flex-start; }
+    .mod-card:last-child { border-bottom: none; }
+    .mod-thumb { width: 64px; height: 64px; border-radius: 8px; flex: 0 0 auto; }
+    .mod-body { flex: 1; min-width: 0; }
+    .mod-title { font-size: .84rem; font-weight: 700; color: #0f3a3d; }
+    .mod-meta { font-size: .7rem; color: #8a9a98; margin: 2px 0 6px; }
+    .mod-text { font-size: .78rem; color: #5b6b6a; line-height: 1.5; }
+    .mod-reason { display: inline-block; margin-top: 8px; font-size: 10px; font-weight: 800; color: #b5544d; background: rgba(181,84,77,.1); padding: 3px 9px; border-radius: 999px; }
+    .mod-actions { display: flex; flex-direction: column; gap: 6px; flex: 0 0 auto; }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 50;
+      background: #0f3a3d; color: #fff; padding: 12px 20px; border-radius: 8px;
+      font-size: .8rem; font-weight: 700; box-shadow: 0 12px 26px rgba(0,0,0,.2);
+      opacity: 0; transform: translateY(10px); transition: all .25s ease; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+
+<body>
+
+  <div class="shell">
+    <!-- sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-brand">globe<span>trotter.</span></div>
+      <div class="sidebar-tag">Admin Panel</div>
+
+      <div class="nav-group-label">Overview</div>
+      <button class="nav-item active" data-section="overview"><span>📊</span><span>Dashboard</span></button>
+
+      <div class="nav-group-label">Manage</div>
+      <button class="nav-item" data-section="users"><span>👥</span><span>Users</span></button>
+      <button class="nav-item" data-section="trips"><span>🧳</span><span>Trips</span></button>
+      <button class="nav-item" data-section="moderation"><span>🚩</span><span>Moderation</span><span class="nav-badge" id="modBadge">3</span></button>
+
+      <div class="nav-group-label">System</div>
+      <button class="nav-item" data-section="settings"><span>⚙</span><span>Settings</span></button>
+
+      <div class="sidebar-foot">
+        <div class="sidebar-foot-avatar">AK</div>
+        <div>
+          <div class="sidebar-foot-name">Anita Kulkarni</div>
+          <div class="sidebar-foot-role">Super Admin</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- main -->
+    <div class="main">
+
+      <!-- ================= OVERVIEW ================= -->
+      <div class="section active" id="section-overview">
+        <div class="page-head">
+          <div>
+            <div class="page-title">dashboard.</div>
+            <div class="page-sub">Here's what's happening across Globe Trotter today.</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn-ghost" type="button">Export Report</button>
+            <button class="btn-primary" type="button">+ Invite Admin</button>
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value">14,286</div>
+            <div class="stat-delta up">▲ 4.2% this week</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Trips Created</div>
+            <div class="stat-value">8,741</div>
+            <div class="stat-delta up">▲ 2.8% this week</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Community Posts</div>
+            <div class="stat-value">2,481</div>
+            <div class="stat-delta up">▲ 11% this week</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Flagged Content</div>
+            <div class="stat-value">3</div>
+            <div class="stat-delta down">▼ needs review</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">recent signups.</div>
+          </div>
+          <table>
+            <thead>
+              <tr><th>User</th><th>Joined</th><th>Trips</th><th>Status</th></tr>
+            </thead>
+            <tbody id="recentSignupsBody"></tbody>
+          </table>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">flagged posts awaiting review.</div>
+            <button class="btn-ghost" type="button" data-goto="moderation">View All</button>
+          </div>
+          <div id="overviewModPreview"></div>
+        </div>
+      </div>
+
+      <!-- ================= USERS ================= -->
+      <div class="section" id="section-users">
+        <div class="page-head">
+          <div>
+            <div class="page-title">users.</div>
+            <div class="page-sub">Manage traveler accounts and access.</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">all users.</div>
+            <input type="text" class="search-input" id="userSearch" placeholder="Search by name or email…" />
+          </div>
+          <table>
+            <thead>
+              <tr><th>User</th><th>Email</th><th>Trips</th><th>Joined</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="usersBody"></tbody>
+          </table>
+          <div class="table-empty" id="usersEmpty" style="display:none;">No users match your search.</div>
+        </div>
+      </div>
+
+      <!-- ================= TRIPS ================= -->
+      <div class="section" id="section-trips">
+        <div class="page-head">
+          <div>
+            <div class="page-title">trips.</div>
+            <div class="page-sub">All trips created across the platform.</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">all trips.</div>
+            <input type="text" class="search-input" id="tripSearch" placeholder="Search by trip or traveler…" />
+          </div>
+          <table>
+            <thead>
+              <tr><th>Trip</th><th>Traveler</th><th>Dates</th><th>Stops</th><th>Visibility</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="tripsBody"></tbody>
+          </table>
+          <div class="table-empty" id="tripsEmpty" style="display:none;">No trips match your search.</div>
+        </div>
+      </div>
+
+      <!-- ================= MODERATION ================= -->
+      <div class="section" id="section-moderation">
+        <div class="page-head">
+          <div>
+            <div class="page-title">moderation queue.</div>
+            <div class="page-sub">Community posts flagged for review.</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div id="modBody"></div>
+          <div class="table-empty" id="modEmpty" style="display:none;">Queue is clear — nothing left to review.</div>
+        </div>
+      </div>
+
+      <!-- ================= SETTINGS ================= -->
+      <div class="section" id="section-settings">
+        <div class="page-head">
+          <div>
+            <div class="page-title">settings.</div>
+            <div class="page-sub">Platform-wide preferences.</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">general.</div></div>
+          <div style="padding:20px;">
+            <table style="width:100%;">
+              <tr>
+                <td style="border:none; padding:10px 0; font-weight:700; color:#0f3a3d;">Require email verification for new signups</td>
+                <td style="border:none; padding:10px 0; text-align:right;">
+                  <label style="display:inline-flex; align-items:center; gap:8px; font-size:.78rem; color:#5c8c88; cursor:pointer;">
+                    <input type="checkbox" checked style="width:16px; height:16px; accent-color:#16a9b1;" /> Enabled
+                  </label>
+                </td>
+              </tr>
+              <tr>
+                <td style="border:none; padding:10px 0; font-weight:700; color:#0f3a3d;">Auto-hide posts with 5+ flags</td>
+                <td style="border:none; padding:10px 0; text-align:right;">
+                  <label style="display:inline-flex; align-items:center; gap:8px; font-size:.78rem; color:#5c8c88; cursor:pointer;">
+                    <input type="checkbox" checked style="width:16px; height:16px; accent-color:#16a9b1;" /> Enabled
+                  </label>
+                </td>
+              </tr>
+              <tr>
+                <td style="border:none; padding:10px 0; font-weight:700; color:#0f3a3d;">Allow public trip sharing by default</td>
+                <td style="border:none; padding:10px 0; text-align:right;">
+                  <label style="display:inline-flex; align-items:center; gap:8px; font-size:.78rem; color:#5c8c88; cursor:pointer;">
+                    <input type="checkbox" style="width:16px; height:16px; accent-color:#16a9b1;" /> Disabled
+                  </label>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Action complete</div>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+    const AVATAR_COLORS = ["#16a9b1", "#e0a85c", "#5c8c88", "#789c83", "#c88461", "#b5544d"];
+    const initials = (name) => name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+    const colorFor = (name) => AVATAR_COLORS[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR_COLORS.length];
+
+    function showToast(msg) {
+      const t = el("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2200);
+    }
+
+    // ---- nav switching ----
+    function goto(section) {
+      document.querySelectorAll(".nav-item").forEach(b => b.classList.toggle("active", b.dataset.section === section));
+      document.querySelectorAll(".section").forEach(s => s.classList.toggle("active", s.id === "section-" + section));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    document.querySelectorAll(".nav-item[data-section]").forEach(btn => {
+      btn.addEventListener("click", () => goto(btn.dataset.section));
+    });
+    document.querySelectorAll("[data-goto]").forEach(btn => {
+      btn.addEventListener("click", () => goto(btn.dataset.goto));
+    });
+
+    // ---- DATA ----
+    let USERS = [
+      { name: "Meera Anand", email: "meera.anand@mail.com", trips: 12, joined: "Jan 14, 2026", status: "active" },
+      { name: "Rohan Kapoor", email: "rohan.k@mail.com", trips: 5, joined: "Feb 2, 2026", status: "active" },
+      { name: "Ayesha Malik", email: "ayesha.m@mail.com", trips: 8, joined: "Mar 9, 2026", status: "active" },
+      { name: "Devika Rao", email: "devika.rao@mail.com", trips: 3, joined: "Apr 21, 2026", status: "pending" },
+      { name: "Karan Shah", email: "karan.shah@mail.com", trips: 20, joined: "May 30, 2026", status: "active" },
+      { name: "Priya Nair", email: "priya.nair@mail.com", trips: 6, joined: "Jun 11, 2026", status: "suspended" },
+      { name: "Arjun Verma", email: "arjun.v@mail.com", trips: 9, joined: "Jul 3, 2026", status: "active" },
+      { name: "Neha Joshi", email: "neha.joshi@mail.com", trips: 4, joined: "Jul 28, 2026", status: "active" }
+    ];
+
+    let TRIPS = [
+      { name: "Kyoto, Japan", traveler: "Meera Anand", dates: "8 – 18 Mar 2027", stops: 3, visibility: "public" },
+      { name: "Paris, France", traveler: "Rohan Kapoor", dates: "4 – 10 Jun 2027", stops: 3, visibility: "public" },
+      { name: "Bali, Indonesia", traveler: "Ayesha Malik", dates: "2 – 11 Sep 2026", stops: 2, visibility: "private" },
+      { name: "Cape Town, South Africa", traveler: "Devika Rao", dates: "14 – 25 Oct 2026", stops: 4, visibility: "public" },
+      { name: "Reykjavik, Iceland", traveler: "Karan Shah", dates: "1 – 7 Feb 2027", stops: 2, visibility: "public" },
+      { name: "Lisbon, Portugal", traveler: "Priya Nair", dates: "19 – 24 Nov 2026", stops: 1, visibility: "private" }
+    ];
+
+    let FLAGGED = [
+      {
+        author: "Marco T.", place: "Full-Moon Party, Koh Phangan", photo: "#e6b98b",
+        text: "Post includes a third-party booking link that redirects off-platform and asks for upfront payment outside the app.",
+        reason: "Suspicious link", reports: 6
+      },
+      {
+        author: "Sana W.", place: "Backpacking the Balkans", photo: "#a7c4b5",
+        text: "Comment thread under this post contains repeated harassment directed at another user.",
+        reason: "Harassment", reports: 4
+      },
+      {
+        author: "Unknown User", place: "\"Guaranteed Visa\" Thailand", photo: "#c88461",
+        text: "Post appears to be promoting a paid visa scheme unrelated to travel planning.",
+        reason: "Spam", reports: 9
+      }
+    ];
+
+    // ---- overview: recent signups (latest 5 users) ----
+    function renderRecentSignups() {
+      const recent = USERS.slice(-5).reverse();
+      el("recentSignupsBody").innerHTML = recent.map(u => `
+        <tr>
+          <td>
+            <div class="cell-user">
+              <div class="avatar" style="background:${colorFor(u.name)}">${initials(u.name)}</div>
+              <div>
+                <div class="cell-name">${u.name}</div>
+                <div class="cell-sub">${u.email}</div>
+              </div>
+            </div>
+          </td>
+          <td>${u.joined}</td>
+          <td>${u.trips}</td>
+          <td><span class="badge badge-${u.status}">${u.status[0].toUpperCase() + u.status.slice(1)}</span></td>
+        </tr>
+      `).join("");
+    }
+
+    function renderOverviewModPreview() {
+      el("overviewModPreview").innerHTML = FLAGGED.slice(0, 2).map((p, i) => modCardHtml(p, i, true)).join("")
+        || `<div class="table-empty">Queue is clear.</div>`;
+      bindModActions("overviewModPreview");
+    }
+
+    // ---- users table ----
+    function renderUsers(filter = "") {
+      const q = filter.trim().toLowerCase();
+      const rows = USERS.filter(u => !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+      el("usersEmpty").style.display = rows.length ? "none" : "block";
+      el("usersBody").innerHTML = rows.map((u, i) => `
+        <tr>
+          <td>
+            <div class="cell-user">
+              <div class="avatar" style="background:${colorFor(u.name)}">${initials(u.name)}</div>
+              <div class="cell-name">${u.name}</div>
+            </div>
+          </td>
+          <td>${u.email}</td>
+          <td>${u.trips}</td>
+          <td>${u.joined}</td>
+          <td><span class="badge badge-${u.status}">${u.status[0].toUpperCase() + u.status.slice(1)}</span></td>
+          <td>
+            <div class="row-actions">
+              ${u.status === "suspended"
+                ? `<button class="row-btn good" data-reinstate="${u.name}">Reinstate</button>`
+                : `<button class="row-btn danger" data-suspend="${u.name}">Suspend</button>`}
+            </div>
+          </td>
+        </tr>
+      `).join("");
+
+      el("usersBody").querySelectorAll("[data-suspend]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const u = USERS.find(x => x.name === btn.dataset.suspend);
+          u.status = "suspended";
+          renderUsers(el("userSearch").value);
+          showToast(`${u.name} suspended`);
+        });
+      });
+      el("usersBody").querySelectorAll("[data-reinstate]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const u = USERS.find(x => x.name === btn.dataset.reinstate);
+          u.status = "active";
+          renderUsers(el("userSearch").value);
+          showToast(`${u.name} reinstated`);
+        });
+      });
+    }
+
+    el("userSearch").addEventListener("input", (e) => renderUsers(e.target.value));
+
+    // ---- trips table ----
+    function renderTrips(filter = "") {
+      const q = filter.trim().toLowerCase();
+      const rows = TRIPS.filter(t => !q || t.name.toLowerCase().includes(q) || t.traveler.toLowerCase().includes(q));
+      el("tripsEmpty").style.display = rows.length ? "none" : "block";
+      el("tripsBody").innerHTML = rows.map(t => `
+        <tr>
+          <td class="cell-name">${t.name}</td>
+          <td>${t.traveler}</td>
+          <td>${t.dates}</td>
+          <td>${t.stops}</td>
+          <td><span class="badge ${t.visibility === "public" ? "badge-active" : "badge-pending"}">${t.visibility[0].toUpperCase() + t.visibility.slice(1)}</span></td>
+          <td>
+            <div class="row-actions">
+              <button class="row-btn danger" data-remove-trip="${t.name}">Remove</button>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+
+      el("tripsBody").querySelectorAll("[data-remove-trip]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          TRIPS = TRIPS.filter(t => t.name !== btn.dataset.removeTrip);
+          renderTrips(el("tripSearch").value);
+          showToast("Trip removed");
+        });
+      });
+    }
+
+    el("tripSearch").addEventListener("input", (e) => renderTrips(e.target.value));
+
+    // ---- moderation queue ----
+    function modCardHtml(p, idx, compact = false) {
+      return `
+        <div class="mod-card">
+          <div class="mod-thumb" style="background:${p.photo}"></div>
+          <div class="mod-body">
+            <div class="mod-title">${p.place}</div>
+            <div class="mod-meta">Posted by ${p.author} · ${p.reports} reports</div>
+            <div class="mod-text">${p.text}</div>
+            <span class="mod-reason">🚩 ${p.reason}</span>
+          </div>
+          <div class="mod-actions">
+            <button class="row-btn good" data-approve="${idx}">Approve</button>
+            <button class="row-btn danger" data-remove="${idx}">Remove Post</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function bindModActions(containerId) {
+      const container = el(containerId);
+      container.querySelectorAll("[data-approve]").forEach(btn => {
+        btn.addEventListener("click", () => resolveFlag(Number(btn.dataset.approve), "approved"));
+      });
+      container.querySelectorAll("[data-remove]").forEach(btn => {
+        btn.addEventListener("click", () => resolveFlag(Number(btn.dataset.remove), "removed"));
+      });
+    }
+
+    function resolveFlag(idx, action) {
+      const item = FLAGGED[idx];
+      FLAGGED.splice(idx, 1);
+      showToast(action === "approved" ? `Post kept live` : `Post removed`);
+      renderModeration();
+      renderOverviewModPreview();
+      renderModBadge();
+    }
+
+    function renderModeration() {
+      el("modEmpty").style.display = FLAGGED.length ? "none" : "block";
+      el("modBody").innerHTML = FLAGGED.map((p, i) => modCardHtml(p, i)).join("");
+      bindModActions("modBody");
+    }
+
+    function renderModBadge() {
+      const badge = el("modBadge");
+      if (FLAGGED.length === 0) {
+        badge.style.display = "none";
+      } else {
+        badge.style.display = "inline-block";
+        badge.textContent = FLAGGED.length;
+      }
+    }
+
+    // ---- init ----
+    renderRecentSignups();
+    renderOverviewModPreview();
+    renderUsers();
+    renderTrips();
+    renderModeration();
+    renderModBadge();
+  </script>
+
+</body>
+</html>

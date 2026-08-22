@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Globe Trotter — Sign In / Register</title>
+
+  <style>
+    /* ==========================================================================
+     Globe Trotter — Design System
+     Theme reference: "SetSail" travel aesthetic
+     ========================================================================== */
+
+    @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+    :root {
+      --gt-teal: #2FD0CD;
+      --gt-teal-strong: #1FB6B3;
+      --gt-teal-deep: #17999A;
+      --gt-aqua: #5CDAD8;
+      --gt-aqua-soft: #8FE7E5;
+      --gt-royal-blue: #3B5998;
+      --gt-orange: #E95B4E;
+      --gt-white: #FFFFFF;
+      --gt-charcoal: #222222;
+      --gt-ink-soft: #4A5A63;
+      --gt-line: rgba(255, 255, 255, 0.35);
+      --gt-glass: rgba(255, 255, 255, 0.14);
+      --gt-teal-glass: rgba(23, 153, 154, 0.55);
+      --gt-shadow-sm: 0 4px 14px rgba(15, 60, 60, 0.10);
+      --gt-shadow-md: 0 10px 30px rgba(15, 60, 60, 0.16);
+      --gt-shadow-lg: 0 20px 45px rgba(15, 60, 60, 0.22);
+      --gt-radius-sm: 8px;
+      --gt-radius-md: 12px;
+      --gt-radius-lg: 20px;
+      --gt-radius-pill: 999px;
+      --gt-font-script: 'Pacifico', cursive;
+      --gt-font-body: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--gt-font-body);
+      color: var(--gt-charcoal);
+      background: var(--gt-teal);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .gt-script {
+      font-family: var(--gt-font-script);
+      font-weight: 400;
+      color: var(--gt-white);
+      letter-spacing: 0.5px;
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible {
+      outline: 3px solid var(--gt-orange);
+      outline-offset: 2px;
+    }
+
+    /* Canvas & Header */
+    .gt-canvas {
+      position: relative;
+      min-height: 100vh;
+      background: radial-gradient(circle at 12% 15%, var(--gt-aqua-soft) 0%, transparent 40%),
+        radial-gradient(circle at 88% 82%, var(--gt-aqua) 0%, transparent 45%),
+        linear-gradient(160deg, var(--gt-teal) 0%, var(--gt-teal-strong) 55%, var(--gt-teal-deep) 100%);
+      overflow: hidden;
+    }
+
+    .gt-dashed-path {
+      position: absolute;
+      pointer-events: none;
+      opacity: 0.55;
+    }
+
+    .gt-pin {
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      border-radius: 50% 50% 50% 0;
+      background: var(--gt-white);
+      transform: rotate(-45deg);
+      box-shadow: var(--gt-shadow-sm);
+      display: grid;
+      place-items: center;
+    }
+
+    .gt-pin::after {
+      content: '';
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--gt-teal);
+      transform: rotate(45deg);
+    }
+
+    .gt-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 40px;
+      position: relative;
+      z-index: 40;
+    }
+
+    .gt-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 22px;
+      color: var(--gt-white);
+    }
+
+    .gt-logo span.gt-script {
+      font-size: 26px;
+    }
+
+    .gt-nav-links {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
+
+    .gt-nav-links a {
+      color: var(--gt-white);
+      font-weight: 500;
+      font-size: 15px;
+      opacity: 0.9;
+      transition: opacity 0.15s ease;
+    }
+
+    .gt-nav-links a:hover {
+      opacity: 1;
+    }
+
+    /* Buttons */
+    .gt-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 26px;
+      border-radius: var(--gt-radius-sm);
+      border: none;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.4px;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .gt-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .gt-btn-primary {
+      background: var(--gt-white);
+      color: var(--gt-teal-deep);
+      box-shadow: var(--gt-shadow-sm);
+      width: 100%;
+    }
+
+    .gt-btn-primary:hover {
+      box-shadow: var(--gt-shadow-md);
+    }
+
+    .gt-btn-facebook {
+      background: var(--gt-royal-blue);
+      color: var(--gt-white);
+      flex: 1;
+    }
+
+    .gt-btn-google {
+      background: var(--gt-orange);
+      color: var(--gt-white);
+      flex: 1;
+    }
+
+    /* Auth UI */
+    .gt-auth-wrap {
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .gt-auth-intro {
+      text-align: center;
+      margin-bottom: 26px;
+    }
+
+    .gt-auth-intro .gt-eyebrow {
+      font-size: 22px;
+      color: var(--gt-white);
+      opacity: 0.9;
+    }
+
+    .gt-auth-intro h1 {
+      font-size: 34px;
+      font-weight: 800;
+      color: var(--gt-white);
+      margin: 4px 0 8px;
+    }
+
+    .gt-auth-card {
+      width: 100%;
+      max-width: 440px;
+      /* slightly widened to accommodate the grid */
+      background: var(--gt-teal-glass);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: var(--gt-radius-lg);
+      box-shadow: var(--gt-shadow-lg);
+      overflow: hidden;
+    }
+
+    .gt-tabs {
+      display: flex;
+    }
+
+    .gt-tab {
+      flex: 1;
+      text-align: center;
+      padding: 18px 0;
+      background: rgba(0, 0, 0, 0.08);
+      color: rgba(255, 255, 255, 0.75);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 1px;
+      border: none;
+    }
+
+    .gt-tab.is-active {
+      background: transparent;
+      color: var(--gt-white);
+      position: relative;
+    }
+
+    .gt-tab.is-active::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 3px;
+      background: var(--gt-white);
+    }
+
+    .gt-tab-panel {
+      padding: 30px 30px 34px;
+    }
+
+    .gt-tab-panel[hidden] {
+      display: none;
+    }
+
+    .gt-tab-panel .gt-sub {
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 13px;
+      margin: 0 0 22px;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    /* Form Fields */
+    .gt-field {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .gt-field input {
+      width: 100%;
+      padding: 14px 16px 14px 44px;
+      border-radius: var(--gt-radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.16);
+      color: var(--gt-white);
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .gt-field input::placeholder {
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    .gt-field .gt-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .gt-field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: -4px 0 20px;
+      font-size: 12.5px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .gt-field-row a {
+      text-decoration: underline;
+    }
+
+    .gt-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 22px 0 16px;
+      color: rgba(255, 255, 255, 0.65);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .gt-divider::before,
+    .gt-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .gt-social-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .gt-auth-footnote {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .gt-auth-footnote a {
+      font-weight: 700;
+      text-decoration: underline;
+    }
+
+    /* Registration Specific Additions */
+    .gt-register-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px 16px;
+    }
+
+    .gt-register-grid .gt-field {
+      margin: 0;
+    }
+
+    .gt-register-full {
+      grid-column: 1 / -1;
+      margin-top: 8px;
+    }
+
+    .gt-register-textarea {
+      width: 100%;
+      min-height: 100px;
+      resize: vertical;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.16);
+      color: var(--gt-white);
+      padding: 14px 16px;
+      font: inherit;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .gt-register-textarea::placeholder {
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    .gt-register-submit {
+      display: block;
+      margin: 24px auto 0;
+    }
+
+    @media (max-width: 700px) {
+      .gt-register-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .gt-register-full {
+        grid-column: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="gt-canvas">
+    <svg class="gt-dashed-path" width="480" height="300" viewBox="0 0 480 300" style="top:6%; left:2%;">
+      <path d="M10,20 C120,10 160,120 260,110 S420,40 470,90" fill="none" stroke="#ffffff" stroke-width="2"
+        stroke-dasharray="6 8" stroke-linecap="round" />
+    </svg>
+    <svg class="gt-dashed-path" width="420" height="260" viewBox="0 0 420 260" style="bottom:4%; right:2%;">
+      <path d="M10,10 C90,80 40,160 140,180 S320,220 400,250" fill="none" stroke="#ffffff" stroke-width="2"
+        stroke-dasharray="6 8" stroke-linecap="round" />
+    </svg>
+    <div class="gt-pin" style="top:12%; left:8%;"></div>
+    <div class="gt-pin" style="bottom:10%; right:9%;"></div>
+
+    <header class="gt-header">
+      <div class="gt-logo">
+        <!-- SVG Globe matching the font size -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+          </path>
+        </svg>
+        <span class="gt-script">Globe Trotter</span>
+      </div>
+      <nav class="gt-nav-links">
+        <a href="dashboard.html">Explore</a>
+        <a href="#">Destinations</a>
+        <a href="#">How it works</a>
+      </nav>
+    </header>
+
+    <main class="gt-auth-wrap">
+      <div>
+        <div class="gt-auth-intro">
+          <span class="gt-script gt-eyebrow">Easy User</span>
+          <h1>Registration</h1>
+        </div>
+
+        <div class="gt-auth-card" id="gtAuthCard">
+          <div class="gt-tabs" role="tablist">
+            <button class="gt-tab is-active" id="tabSignIn" role="tab" aria-selected="true"
+              aria-controls="panelSignIn">Sign In</button>
+            <button class="gt-tab" id="tabRegister" role="tab" aria-selected="false"
+              aria-controls="panelRegister">Register</button>
+          </div>
+
+          <!-- SIGN IN PANEL -->
+          <div class="gt-tab-panel" id="panelSignIn" role="tabpanel" aria-labelledby="tabSignIn">
+            <p class="gt-sub">Welcome back — pick up your itinerary right where you left it.</p>
+            <form method="post" action="dashboard(2).html">
+              <div class="gt-field">
+                <svg class="gt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                <input type="text" name="username" placeholder="User Name*" required>
+              </div>
+              <div class="gt-field">
+                <svg class="gt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                <input type="password" name="password" placeholder="Password*" required>
+              </div>
+              <div class="gt-field-row">
+                <label class="gt-remember"><input type="checkbox" name="remember"> Remember me</label>
+                <a href="{% url 'password_reset' %}">Forgot your password?</a>
+              </div>
+              <button type="submit" class="gt-btn gt-btn-primary">Sign In</button>
+            </form>
+            <div class="gt-divider">Connect with social networks</div>
+            <div class="gt-social-row">
+              <button class="gt-btn gt-btn-facebook" type="button">Facebook</button>
+              <button class="gt-btn gt-btn-google" type="button">Google</button>
+            </div>
+          </div>
+
+          <!-- REGISTER PANEL -->
+          <div class="gt-tab-panel" id="panelRegister" role="tabpanel" aria-labelledby="tabRegister" hidden>
+
+            <div style="text-align: center; margin-bottom: 24px;">
+              <span class="gt-script" style="font-size: 30px; display: block;">Globe Trotter</span>
+            </div>
+
+            <form method="post" action="dashboard(2).html">
+              <div class="gt-register-grid">
+
+                <div class="gt-field">
+                  <svg class="gt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <input type="text" name="first_name" placeholder="First Name" required>
+                </div>
+
+                <div class="gt-field">
+                  <svg class="gt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <input type="text" name="last_name" placeholder="Last Name" required>
+                </div>
+
+                <div class="gt-field">
+                  <svg class="gt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                  </svg>
+                  <input type="email" name="email" placeholder="Email Address" required>
+                </div>
+
+                <div class="gt-field">
+                  <svg class="gt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path
+                      d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                  <input type="tel" name="phone" placeholder="Phone Number" required>
+                </div>
+
+                <div class="gt-field">
+                  <svg class="gt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <input type="text" name="city" placeholder="City" required>
+                </div>
+
+                <div class="gt-field">
+                  <svg class="gt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <input type="text" name="country" placeholder="Country" required>
+                </div>
+
+                <div class="gt-register-full">
+                  <textarea class="gt-register-textarea" name="additional_information"
+                    placeholder="Additional Information ..."></textarea>
+                </div>
+
+              </div>
+
+              <button type="submit" class="gt-btn gt-btn-primary gt-register-submit">
+                Register User
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <p class="gt-auth-footnote">
+          By continuing you agree to Globe Trotter's <a href="#">Terms</a> &amp; <a href="#">Privacy
+            Policy</a>.
+        </p>
+      </div>
+    </main>
+
+  </div>
+
+  <script>
+    (function () {
+      var tabSignIn = document.getElementById('tabSignIn');
+      var tabRegister = document.getElementById('tabRegister');
+      var panelSignIn = document.getElementById('panelSignIn');
+      var panelRegister = document.getElementById('panelRegister');
+
+      function activate(tab) {
+        var showRegister = tab === 'register';
+        tabSignIn.classList.toggle('is-active', !showRegister);
+        tabRegister.classList.toggle('is-active', showRegister);
+        tabSignIn.setAttribute('aria-selected', String(!showRegister));
+        tabRegister.setAttribute('aria-selected', String(showRegister));
+        panelSignIn.hidden = showRegister;
+        panelRegister.hidden = !showRegister;
+      }
+
+      tabSignIn.addEventListener('click', function () { activate('signin'); });
+      tabRegister.addEventListener('click', function () { activate('register'); });
+    })();
+  </script>
+
+</body>
+
+</html>

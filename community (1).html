@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community — Globe Trotter</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ["Georgia", "serif"],
+            sans: ["Arial", "Helvetica", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: #f8f6ed;
+      font-family: Arial, Helvetica, sans-serif;
+      background-image:
+        radial-gradient(circle at 14% 8%, rgba(22,169,177,.06) 0 2px, transparent 3px),
+        radial-gradient(circle at 86% 64%, rgba(22,169,177,.06) 0 2px, transparent 3px);
+      background-size: 110px 110px, 140px 140px;
+    }
+
+    /* ---- shared photo textures (same recipe as trips + itinerary + dashboard) ---- */
+    .photo-one {
+      background:
+        linear-gradient(135deg, rgba(14,74,82,.1), transparent 50%),
+        linear-gradient(145deg, #f4b48e 0 22%, #b5d6c8 22% 58%, #536d71 58%);
+    }
+    .photo-two { background: linear-gradient(180deg, #cce6ef 0 42%, #d6c38b 42% 64%, #789c83 64%); }
+    .photo-three { background: linear-gradient(155deg, #203d49 0 24%, #e7bd76 24% 49%, #5c8c88 49% 100%); }
+    .photo-four { background: linear-gradient(160deg, #8bb8bf 0 38%, #e6dfc5 38% 57%, #c88461 57%); }
+    .photo-five { background: linear-gradient(150deg, #e3c9a6 0 30%, #7fa3a1 30% 55%, #2f4f4d 55%); }
+    .photo-six { background: linear-gradient(170deg, #d7d0b8 0 40%, #a7c4b5 40% 62%, #4c6b64 62%); }
+
+    /* ---- community hero ---- */
+    .comm-hero {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 16px 32px rgba(20,88,94,.18);
+      background: #0f3a3d;
+    }
+    .comm-hero-inner {
+      position: relative;
+      padding: 34px 28px 30px;
+      color: #fff;
+      overflow: hidden;
+    }
+    .comm-hero-inner::before {
+      content: "";
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(circle at 88% 12%, rgba(22,169,177,.35), transparent 45%),
+        radial-gradient(circle at 8% 92%, rgba(224,168,92,.25), transparent 40%);
+    }
+    .comm-hero-eyebrow { position: relative; font-size: 11px; font-weight: 800; letter-spacing: .25em; text-transform: uppercase; opacity: .8; }
+    .comm-hero-title { position: relative; font-family: Georgia, serif; font-style: italic; font-size: 2.15rem; margin: 4px 0 8px; max-width: 560px; }
+    .comm-hero-desc { position: relative; font-size: .88rem; line-height: 1.6; color: #d8e6e4; max-width: 480px; }
+    .comm-hero-stats { position: relative; display: flex; gap: 28px; margin-top: 20px; flex-wrap: wrap; }
+    .comm-hero-stat-value { font-family: Georgia, serif; font-style: italic; font-size: 1.5rem; }
+    .comm-hero-stat-label { font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #9fc3c0; }
+    .comm-hero-cta {
+      position: relative; margin-top: 22px;
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #16a9b1; color: #fff; border: none; border-radius: 999px;
+      padding: 12px 22px; font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+      cursor: pointer;
+    }
+    .comm-hero-cta:hover { background: #13949b; }
+
+    /* ---- filter pills ---- */
+    .filter-row { display: flex; gap: 10px; overflow-x: auto; padding: 4px 0; }
+    .filter-pill {
+      flex: 0 0 auto;
+      border: 2px solid rgba(22,169,177,.25);
+      background: #fff; color: #0f3a3d;
+      border-radius: 999px; padding: 9px 18px;
+      font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+      cursor: pointer; white-space: nowrap; transition: all .15s ease;
+    }
+    .filter-pill.active { background: #16a9b1; border-color: #16a9b1; color: #fff; }
+    .filter-pill:hover:not(.active) { border-color: #16a9b1; color: #16a9b1; }
+
+    /* ---- post card (postcard aesthetic) ---- */
+    .post-card {
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(20,88,94,.1);
+      margin-bottom: 20px;
+      break-inside: avoid;
+    }
+    .post-photo { position: relative; height: 190px; }
+    .post-photo::after {
+      content: "";
+      position: absolute; inset: 0;
+      background: linear-gradient(0deg, rgba(15,58,61,.75) 0%, transparent 55%);
+    }
+    .post-photo-tag {
+      position: absolute; left: 14px; bottom: 12px; z-index: 2;
+      color: #fff; font-family: Georgia, serif; font-style: italic; font-size: 1.15rem;
+    }
+    .post-photo-days {
+      position: absolute; right: 14px; top: 12px; z-index: 2;
+      background: rgba(255,255,255,.85); color: #0f3a3d;
+      font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+      padding: 5px 10px; border-radius: 999px;
+    }
+    .post-body { padding: 16px 18px 18px; }
+    .post-author { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .post-avatar {
+      width: 34px; height: 34px; border-radius: 50%; flex: 0 0 auto;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 800; font-size: .8rem; font-family: Georgia, serif;
+    }
+    .post-author-name { font-size: .82rem; font-weight: 700; color: #0f3a3d; }
+    .post-author-meta { font-size: .68rem; color: #8a9a98; }
+    .post-caption { font-size: .84rem; line-height: 1.55; color: #435453; margin-bottom: 12px; }
+    .post-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .post-tag {
+      font-size: 10px; font-weight: 800; letter-spacing: .04em;
+      color: #16a9b1; background: rgba(22,169,177,.1);
+      padding: 4px 9px; border-radius: 999px;
+    }
+    .post-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 12px; border-top: 2px dashed rgba(22,169,177,.25);
+    }
+    .post-actions { display: flex; gap: 16px; }
+    .post-action {
+      display: flex; align-items: center; gap: 6px;
+      background: none; border: none; cursor: pointer;
+      font-size: .78rem; font-weight: 700; color: #5c8c88;
+      padding: 0; transition: color .15s ease;
+    }
+    .post-action:hover { color: #16a9b1; }
+    .post-action.liked { color: #b5544d; }
+    .post-save {
+      background: none; border: none; cursor: pointer; color: #8a9a98; font-size: .95rem;
+    }
+    .post-save:hover { color: #0f3a3d; }
+
+    .masonry { columns: 1; column-gap: 20px; }
+    @media (min-width: 720px) { .masonry { columns: 2; } }
+    @media (min-width: 1080px) { .masonry { columns: 3; } }
+
+    /* ---- sidebar: trending destinations ---- */
+    .side-card { background: #fff; border-radius: 10px; box-shadow: 0 8px 20px rgba(20,88,94,.1); padding: 18px 20px 20px; margin-bottom: 20px; }
+    .side-card-title { font-family: Georgia, serif; font-style: italic; font-size: 1.05rem; color: #0f3a3d; margin-bottom: 12px; }
+    .trend-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(22,169,177,.12); }
+    .trend-row:last-child { border-bottom: none; }
+    .trend-name { font-size: .82rem; font-weight: 700; color: #0f3a3d; }
+    .trend-count { font-size: .7rem; font-weight: 800; color: #16a9b1; }
+
+    .prompter-card {
+      background: linear-gradient(160deg, #0f3a3d, #16656b);
+      border-radius: 10px; padding: 20px 20px 22px; color: #fff;
+      box-shadow: 0 8px 20px rgba(20,88,94,.18);
+    }
+    .prompter-title { font-family: Georgia, serif; font-style: italic; font-size: 1.05rem; margin-bottom: 6px; }
+    .prompter-desc { font-size: .78rem; line-height: 1.5; color: #d8e6e4; margin-bottom: 14px; }
+    .prompter-btn {
+      width: 100%; background: #16a9b1; color: #fff; border: none; border-radius: 8px;
+      padding: 10px; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; cursor: pointer;
+    }
+    .prompter-btn:hover { background: #13949b; }
+  </style>
+</head>
+
+<body>
+
+  <!-- top bar -->
+  <div class="mx-auto flex max-w-6xl items-center justify-between px-6 pt-8 pb-2 md:px-10">
+    <a href="dashboard.html" class="font-sans text-sm font-black uppercase tracking-[.2em] text-[#0f3a3d]">
+      globe<span class="text-[#16a9b1]">trotter.</span>
+    </a>
+    <div class="flex items-center gap-5">
+      <a href="mytrip-planner.html" class="text-xs font-bold uppercase tracking-[.2em] text-[#16a9b1] transition hover:text-[#0f3a3d]">My Trips</a>
+      <a href="budget-planner.html" class="text-xs font-bold uppercase tracking-[.2em] text-[#16a9b1] transition hover:text-[#0f3a3d]">Budget</a>
+      <a href="community.html" class="text-xs font-bold uppercase tracking-[.2em] text-[#0f3a3d]">Community</a>
+      <a href="dashboard.html" class="text-xs font-bold uppercase tracking-[.2em] text-[#16a9b1] transition hover:text-[#0f3a3d]">← Explore</a>
+    </div>
+  </div>
+
+  <!-- hero -->
+  <section class="mx-auto max-w-6xl px-6 md:px-10 pt-4 pb-8">
+    <div class="comm-hero">
+      <div class="comm-hero-inner">
+        <p class="comm-hero-eyebrow">Community</p>
+        <h1 class="comm-hero-title">Real trips, from real travelers.</h1>
+        <p class="comm-hero-desc">Browse itineraries, swap tips, and get inspired by trips other Globe Trotters have actually taken — not just saved.</p>
+        <div class="comm-hero-stats">
+          <div>
+            <div class="comm-hero-stat-value">2,481</div>
+            <div class="comm-hero-stat-label">Trips Shared</div>
+          </div>
+          <div>
+            <div class="comm-hero-stat-value">96</div>
+            <div class="comm-hero-stat-label">Countries</div>
+          </div>
+          <div>
+            <div class="comm-hero-stat-value">14.2k</div>
+            <div class="comm-hero-stat-label">Travelers</div>
+          </div>
+        </div>
+        <button class="comm-hero-cta" type="button" id="shareTripCta">⤴ Share Your Trip</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- filters -->
+  <section class="mx-auto max-w-6xl px-6 md:px-10 mb-4">
+    <div class="filter-row" id="filterRow">
+      <button class="filter-pill active" data-filter="all">All Posts</button>
+      <button class="filter-pill" data-filter="popular">Most Loved</button>
+      <button class="filter-pill" data-filter="recent">Recent</button>
+      <button class="filter-pill" data-filter="budget">Budget Trips</button>
+      <button class="filter-pill" data-filter="solo">Solo Travel</button>
+      <button class="filter-pill" data-filter="family">Family</button>
+    </div>
+  </section>
+
+  <!-- main grid: feed + sidebar -->
+  <section class="mx-auto max-w-6xl px-6 md:px-10 pb-28 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
+    <div class="masonry" id="feed"></div>
+
+    <aside>
+      <div class="side-card">
+        <div class="side-card-title">trending destinations.</div>
+        <div id="trendList"></div>
+      </div>
+      <div class="prompter-card">
+        <div class="prompter-title">Planning something new?</div>
+        <p class="prompter-desc">Turn any shared trip into your own starting point — duplicate it and edit the stops to fit your dates.</p>
+        <button class="prompter-btn" type="button" onclick="window.location.href='mytrip-planner.html'">Start a New Trip</button>
+      </div>
+    </aside>
+  </section>
+
+  <script>
+    const AVATAR_COLORS = ["#16a9b1", "#e0a85c", "#5c8c88", "#789c83", "#c88461", "#b5544d"];
+    const initials = (name) => name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+    const colorFor = (name) => AVATAR_COLORS[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR_COLORS.length];
+
+    const POSTS = [
+      {
+        author: "Meera Anand", meta: "12 trips shared", photo: "photo-three", place: "Kyoto, Japan", days: "10 days",
+        caption: "Did the whole Kyoto–Osaka–Nara loop on JR rail passes. Fushimi Inari before 8am was the single best call of the trip — completely empty.",
+        tags: ["#Japan", "#TrainTravel", "#MultiCity"], likes: 214, comments: 38, category: "popular"
+      },
+      {
+        author: "Rohan Kapoor", meta: "5 trips shared", photo: "photo-one", place: "Paris, France", days: "7 days",
+        caption: "Versailles as a day trip is 100% worth the early RER ride. Skipped the Louvre queue by booking the 9am slot online — saved almost 2 hours.",
+        tags: ["#France", "#Museums", "#TipsAndTricks"], likes: 156, comments: 22, category: "recent"
+      },
+      {
+        author: "Ayesha Malik", meta: "8 trips shared", photo: "photo-two", place: "Bali, Indonesia", days: "9 days",
+        caption: "Did this entire trip on ₹58,000 including flights from Delhi. Staying in Ubud over Canggu cut accommodation costs almost in half.",
+        tags: ["#Indonesia", "#BudgetTravel", "#SoloTrip"], likes: 301, comments: 54, category: "budget"
+      },
+      {
+        author: "Devika Rao", meta: "3 trips shared", photo: "photo-four", place: "Cape Town, South Africa", days: "11 days",
+        caption: "Took the kids up Table Mountain via cable car instead of hiking — worth every rand for the view without the meltdowns.",
+        tags: ["#SouthAfrica", "#FamilyTravel", "#Wildlife"], likes: 98, comments: 17, category: "family"
+      },
+      {
+        author: "Karan Shah", meta: "20 trips shared", photo: "photo-five", place: "Reykjavik, Iceland", days: "6 days",
+        caption: "Chased the northern lights for four nights straight and finally got them on the last one, out past Þingvellir. Bring way more layers than you think.",
+        tags: ["#Iceland", "#Aurora", "#RoadTrip"], likes: 267, comments: 41, category: "popular"
+      },
+      {
+        author: "Priya Nair", meta: "6 trips shared", photo: "photo-six", place: "Lisbon, Portugal", days: "5 days",
+        caption: "First solo trip and Lisbon made it easy — walkable, cheap trams, and the miradouros are perfect for a solo sunset without feeling awkward.",
+        tags: ["#Portugal", "#SoloTrip", "#FirstTimer"], likes: 133, comments: 19, category: "solo"
+      },
+      {
+        author: "Arjun Verma", meta: "9 trips shared", photo: "photo-two", place: "Hoi An, Vietnam", days: "4 days",
+        caption: "Got a suit tailored in 24 hours for less than a mall shirt back home. Lantern festival on the 14th lunar day is unmissable if your dates line up.",
+        tags: ["#Vietnam", "#BudgetTravel", "#Shopping"], likes: 87, comments: 12, category: "budget"
+      },
+      {
+        author: "Neha Joshi", meta: "4 trips shared", photo: "photo-one", place: "Amalfi Coast, Italy", days: "8 days",
+        caption: "Skipped renting a car — the SITA buses along the coast road are terrifying in the best way and way cheaper than a rental plus parking.",
+        tags: ["#Italy", "#CoastalDrive", "#TipsAndTricks"], likes: 178, comments: 29, category: "recent"
+      }
+    ];
+
+    const TRENDING = [
+      { name: "Kyoto, Japan", count: "412 trips" },
+      { name: "Lisbon, Portugal", count: "298 trips" },
+      { name: "Bali, Indonesia", count: "276 trips" },
+      { name: "Reykjavik, Iceland", count: "201 trips" },
+      { name: "Paris, France", count: "189 trips" }
+    ];
+
+    const feedEl = document.getElementById("feed");
+    const trendEl = document.getElementById("trendList");
+    const filterRow = document.getElementById("filterRow");
+
+    const liked = new Set();
+    const saved = new Set();
+    let activeFilter = "all";
+
+    function renderFeed() {
+      const posts = activeFilter === "all" ? POSTS : POSTS.filter(p => p.category === activeFilter);
+      feedEl.innerHTML = posts.map((p, i) => `
+        <div class="post-card">
+          <div class="post-photo ${p.photo}">
+            <span class="post-photo-days">${p.days}</span>
+            <span class="post-photo-tag">${p.place}</span>
+          </div>
+          <div class="post-body">
+            <div class="post-author">
+              <div class="post-avatar" style="background:${colorFor(p.author)}">${initials(p.author)}</div>
+              <div>
+                <div class="post-author-name">${p.author}</div>
+                <div class="post-author-meta">${p.meta}</div>
+              </div>
+            </div>
+            <p class="post-caption">${p.caption}</p>
+            <div class="post-tags">
+              ${p.tags.map(t => `<span class="post-tag">${t}</span>`).join("")}
+            </div>
+            <div class="post-footer">
+              <div class="post-actions">
+                <button class="post-action ${liked.has(i) ? "liked" : ""}" data-like="${i}">
+                  <span>${liked.has(i) ? "♥" : "♡"}</span><span>${p.likes + (liked.has(i) ? 1 : 0)}</span>
+                </button>
+                <button class="post-action" type="button">
+                  <span>💬</span><span>${p.comments}</span>
+                </button>
+              </div>
+              <button class="post-save" data-save="${i}" title="Save trip">${saved.has(i) ? "★" : "☆"}</button>
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      feedEl.querySelectorAll("[data-like]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const idx = Number(btn.dataset.like);
+          liked.has(idx) ? liked.delete(idx) : liked.add(idx);
+          renderFeed();
+        });
+      });
+      feedEl.querySelectorAll("[data-save]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const idx = Number(btn.dataset.save);
+          saved.has(idx) ? saved.delete(idx) : saved.add(idx);
+          renderFeed();
+        });
+      });
+    }
+
+    function renderTrending() {
+      trendEl.innerHTML = TRENDING.map(t => `
+        <div class="trend-row">
+          <span class="trend-name">${t.name}</span>
+          <span class="trend-count">${t.count}</span>
+        </div>
+      `).join("");
+    }
+
+    filterRow.querySelectorAll(".filter-pill").forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeFilter = btn.dataset.filter;
+        filterRow.querySelectorAll(".filter-pill").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderFeed();
+      });
+    });
+
+    document.getElementById("shareTripCta").addEventListener("click", () => {
+      window.location.href = "mytrip-planner.html";
+    });
+
+    renderFeed();
+    renderTrending();
+  </script>
+
+</body>
+</html>
