@@ -84,3 +84,37 @@ class ForgotPasswordView(APIView):
             )
 
         return Response({"detail": "If an account exists for that email, a reset link has been sent."})
+
+
+from rest_framework import generics
+from django.db.models import Q
+
+class UserProfileView(APIView):
+    # Endpoint for /api/users/me/
+    def patch(self, request):
+        user = request.user
+        if not user.is_authenticated:
+            user = get_user_model().objects.first() # Mock auth fallback
+            
+        # Update logic based on custom user model fields
+        if 'fullName' in request.data:
+            user.first_name = request.data['fullName'] # Adjust to match your model
+        if 'email' in request.data:
+            user.email = request.data['email']
+        user.save()
+        
+        return Response({
+            "id": user.id,
+            "fullName": user.first_name,
+            "email": user.email
+        })
+
+class UserSearchView(APIView):
+    # Endpoint for /api/users/search/
+    def get(self, request):
+        query = request.query_params.get('q', '')
+        User = get_user_model()
+        users = User.objects.filter(email__icontains=query)[:10]
+        
+        data = [{"id": u.id, "fullName": u.first_name, "email": u.email} for u in users]
+        return Response(data)

@@ -55,6 +55,26 @@ class Expense(models.Model):
     description = models.CharField(max_length=255)
     is_estimate = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    # Add these two fields to the existing Trip class
+    likes = models.IntegerField(default=0)
+    views = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.description} - {self.amount}"
+
+class TripCollaborator(models.Model):
+    ROLE_CHOICES = (
+        ('owner', 'Owner'),
+        ('editor', 'Editor'),
+        ('viewer', 'Viewer'),
+    )
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="collaborators")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="shared_trips")
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='viewer')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('trip', 'user')
+
+    def __str__(self):
+        return f"{self.user.email} - {self.role} on {self.trip.name}"

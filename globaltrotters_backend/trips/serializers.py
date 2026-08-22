@@ -59,3 +59,33 @@ class ExpenseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Expense
         fields = ['id', 'tripId', 'stopId', 'category', 'amount', 'date', 'description', 'isEstimate']
+
+from .models import TripCollaborator # Add this import at the top
+
+# Add this new serializer before TripSerializer
+class TripCollaboratorSerializer(serializers.ModelSerializer):
+    userId = serializers.IntegerField(source='user.id', read_only=True)
+    # Adjust 'first_name' to match your Custom User model's name field if necessary
+    fullName = serializers.CharField(source='user.first_name', read_only=True) 
+    email = serializers.EmailField(source='user.email', read_only=True)
+
+    class Meta:
+        model = TripCollaborator
+        fields = ['id', 'userId', 'fullName', 'email', 'role']
+
+# Update your existing TripSerializer to include the new fields
+class TripSerializer(serializers.ModelSerializer):
+    stops = TripStopSerializer(many=True, required=False)
+    collaborators = TripCollaboratorSerializer(many=True, read_only=True)
+    ownerId = serializers.IntegerField(source='owner.id', read_only=True)
+    ownerName = serializers.CharField(source='owner.first_name', read_only=True)
+    startDate = serializers.DateField(source='start_date', required=False, allow_null=True)
+    endDate = serializers.DateField(source='end_date', required=False, allow_null=True)
+    createdAt = serializers.DateTimeField(source='created_at', read_only=True)
+
+    class Meta:
+        model = Trip
+        fields = ['id', 'ownerId', 'ownerName', 'name', 'startDate', 'endDate', 'budget', 'currency', 'status', 'is_public', 'travelers', 'notes', 'stops', 'collaborators', 'createdAt', 'likes', 'views']
+        read_only_fields = ['id', 'createdAt', 'likes', 'views']
+
+    # ... keep your existing create() method exactly as it is ...
