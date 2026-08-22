@@ -1,9 +1,12 @@
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from .serializers import ForgotPasswordSerializer, LoginSerializer, RegisterSerializer, UserSerializer
 from .serializers import LoginSerializer, RegisterSerializer, UserSerializer
 
 User = get_user_model()
@@ -52,3 +55,32 @@ class MeView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+class ForgotPasswordView(APIView):
+    """
+    POST /api/auth/forgot-password/ — matches ForgotPassword.tsx.
+    Always returns 200 regardless of whether the email exists, to avoid
+    leaking account existence — the frontend already messages it this way.
+    """
+
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+
+        User = get_user_model()
+        user = User.objects.filter(email__iexact=email).first()
+        if user is not None:
+            # TODO: swap this for a real reset-token + reset-confirm flow
+            # (e.g. django-rest-passwordreset) before going to production.
+            send_mail(
+                subject="Reset your GlobalTrotters password",
+                message="A password reset was requested for this account.",
+                from_email=None,
+                recipient_list=[user.email],
+                fail_silently=True,
+            )
+
+        return Response({"detail": "If an account exists for that email, a reset link has been sent."})

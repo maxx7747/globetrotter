@@ -43,3 +43,12 @@ class LoginSerializer(TokenObtainPairSerializer):
         data = super().validate(attrs)
         data["user"] = UserSerializer(self.user).data
         return data
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        # Intentionally do NOT raise if the email doesn't exist — this
+        # matches ForgotPassword.tsx's "If an account exists for X..."
+        # messaging, which avoids leaking which emails are registered.
+        return value

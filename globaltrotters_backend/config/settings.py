@@ -107,3 +107,7 @@ CORS_ALLOWED_ORIGINS = os.getenv(
     "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
 ).split(",")
 CORS_ALLOW_CREDENTIALS = True
+
+# Dev only — prints "sent" emails to the terminal instead of actually
+# sending them. Swap for a real SMTP/SES backend in production.
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
