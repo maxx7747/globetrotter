@@ -34,3 +34,19 @@ class TripActivityListCreateView(generics.ListCreateAPIView):
 class ActivityRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Activity.objects.all()
     serializer_class = ActivitySerializer
+
+from .models import Expense
+from .serializers import ExpenseSerializer
+
+# Handles GET /api/trips/<id>/expenses/ and POST /api/trips/<id>/expenses/
+class TripExpenseListCreateView(generics.ListCreateAPIView):
+    serializer_class = ExpenseSerializer
+
+    def get_queryset(self):
+        # Return expenses only for the trip specified in the URL
+        return Expense.objects.filter(trip_id=self.kwargs['trip_pk']).order_by('-date', '-created_at')
+
+# Handles PATCH /api/expenses/<id>/ and DELETE /api/expenses/<id>/
+class ExpenseRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Expense.objects.all()
+    serializer_class = ExpenseSerializer

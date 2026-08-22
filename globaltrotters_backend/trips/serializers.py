@@ -48,3 +48,14 @@ class ActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Activity
         fields = ['id', 'tripId', 'stopId', 'name', 'category', 'date', 'startTime', 'endTime', 'estimatedCost', 'notes', 'location']
+
+from .models import Expense
+
+class ExpenseSerializer(serializers.ModelSerializer):
+    tripId = serializers.PrimaryKeyRelatedField(source='trip', queryset=Trip.objects.all())
+    stopId = serializers.PrimaryKeyRelatedField(source='stop', queryset=TripStop.objects.all(), required=False, allow_null=True)
+    isEstimate = serializers.BooleanField(source='is_estimate')
+
+    class Meta:
+        model = Expense
+        fields = ['id', 'tripId', 'stopId', 'category', 'amount', 'date', 'description', 'isEstimate']
